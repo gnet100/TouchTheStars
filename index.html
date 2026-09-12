@@ -29,14 +29,20 @@
     /* ריווח מתחת לסרגל העליון, כולל אזור השעון/המצלמה באייפון כשהמשחק מותקן כאפליקציה */
     .arena-pt { padding-top: calc(5rem + env(safe-area-inset-top, 0px)); }
 
+    /* הנקודה המהבהבת בשורת התור: פעימה אחת בכל 2 שניות */
+    @keyframes slow-ping {
+      75%, 100% { transform: scale(2); opacity: 0; }
+    }
+    .dot-ping { animation: slow-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite; }
+
     /* בלי "משיכה לרענון" בטעות באמצע משחק */
     html, body { overscroll-behavior: none; }
 
     /* מסכים נמוכים: מצמצמים רווחים וכוכביות כדי שכל הלוח ייכנס. אם עדיין לא נכנס, הזירה נגללת */
     @media (max-height: 720px) {
       .arena-pt { padding-top: calc(4.5rem + env(safe-area-inset-top, 0px)); }
-      #turn-text { font-size: 1.25rem; line-height: 1.75rem; }
-      #active-turn-banner { padding-top: 0.375rem; padding-bottom: 0.375rem; }
+      #turn-text { font-size: 1rem; line-height: 1.375rem; }
+      #active-turn-banner { padding-top: 0.3rem; padding-bottom: 0.3rem; }
       #board-container > * + * { margin-top: 0.3rem; }
       #board-container > div { padding-top: 0.25rem; padding-bottom: 0.25rem; }
       #board-container .w-9 { width: 2rem; height: 2rem; }
@@ -377,10 +383,10 @@
       <div class="relative w-full rounded-2xl bg-[#0d111d] p-space-md shadow-2xl border border-white/15 flex flex-col items-center">
         <div class="flex flex-col items-center justify-center text-center gap-2 w-full">
           <!-- שחקן 1: כחול, נקודה בתחילת השורה. שחקן 2 או המחשב: ורוד, נקודה בסוף השורה -->
-          <div id="active-turn-banner" class="w-full flex items-center gap-2 py-2.5 px-4 rounded-xl border shadow-lg transition-all bg-player1/15 border-player1/50">
-            <span class="w-4 flex justify-center shrink-0"><span id="turn-dot-start" class="w-3.5 h-3.5 rounded-full animate-ping bg-player1"></span></span>
-            <span id="turn-text" class="flex-1 text-center text-2xl font-black tracking-wide text-player1">שחקן 1</span>
-            <span class="w-4 flex justify-center shrink-0"><span id="turn-dot-end" class="w-3.5 h-3.5 rounded-full animate-ping bg-secondary invisible"></span></span>
+          <div id="active-turn-banner" class="w-3/4 flex items-center gap-1.5 py-1.5 px-3 rounded-xl border shadow-lg transition-colors bg-player1/15 border-player1/50">
+            <span class="w-3 flex justify-center shrink-0"><span id="turn-dot-start" class="w-2.5 h-2.5 rounded-full dot-ping bg-player1"></span></span>
+            <span id="turn-text" class="flex-1 text-center text-lg leading-6 font-black tracking-wide text-player1">שחקן 1</span>
+            <span class="w-3 flex justify-center shrink-0"><span id="turn-dot-end" class="w-2.5 h-2.5 rounded-full dot-ping bg-secondary invisible"></span></span>
           </div>
 
           <div class="flex items-center justify-center gap-6 w-full pt-2">
@@ -820,10 +826,10 @@
       const p1 = gameState.currentPlayer === 1;
       const showDot = !gameState.isGameOverHandled;
       document.getElementById('active-turn-banner').className =
-        'w-full flex items-center gap-2 py-2.5 px-4 rounded-xl border shadow-lg transition-all ' +
+        'w-3/4 flex items-center gap-1.5 py-1.5 px-3 rounded-xl border shadow-lg transition-colors ' +
         (p1 ? 'bg-player1/15 border-player1/50' : 'bg-secondary-container/30 border-secondary/40');
       document.getElementById('turn-text').className =
-        'flex-1 text-center text-2xl font-black tracking-wide ' + (p1 ? 'text-player1' : 'text-secondary');
+        'flex-1 text-center text-lg leading-6 font-black tracking-wide ' + (p1 ? 'text-player1' : 'text-secondary');
       document.getElementById('turn-dot-start').classList.toggle('invisible', !(p1 && showDot));
       document.getElementById('turn-dot-end').classList.toggle('invisible', !(!p1 && showDot));
     }
