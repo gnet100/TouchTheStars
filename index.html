@@ -305,20 +305,6 @@
 
       <div class="w-full flex flex-col justify-start pt-4 gap-8 mb-auto">
         <div class="flex flex-col gap-3 text-right">
-          <label class="text-sm font-bold text-on-surface-variant">מי מתחיל ראשון?</label>
-          <div class="flex items-center justify-between gap-2">
-            <button type="button" onclick="setStarterPlayer(1)" id="starter-btn-1" class="flex-1 h-11 rounded-xl bg-primary-container text-on-primary border border-primary font-bold text-xs shadow-md flex items-center justify-center gap-1.5">
-              <span class="material-symbols-outlined text-[18px]">person</span>
-              <span>שחקן 1</span>
-            </button>
-            <button type="button" onclick="setStarterPlayer(2)" id="starter-btn-2" class="flex-1 h-11 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10 flex items-center justify-center gap-1.5">
-              <span id="starter-icon-2" class="material-symbols-outlined text-[18px]">smart_toy</span>
-              <span id="starter-label-2">מחשב</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="flex flex-col gap-3 text-right border-t border-white/10 pt-4 -mt-4">
           <label class="text-sm font-bold text-player1 flex items-center gap-1">
             <span class="material-symbols-outlined text-[18px]">person</span>
             <span>שם שחקן 1:</span>
@@ -332,6 +318,21 @@
             <span>שם שחקן 2:</span>
           </label>
           <input id="setup-p2-name" type="text" value="שחקן 2" class="w-full h-11 px-3.5 rounded-xl bg-[#171c2b] border border-secondary/60 text-on-surface focus:outline-none focus:border-secondary text-xs font-bold"/>
+        </div>
+
+        <!-- קו דק מפריד בין שמות השחקנים לבחירת המתחיל -->
+        <div class="flex flex-col gap-3 text-right border-t border-white/10 pt-4 -mt-4">
+          <label class="text-sm font-bold text-on-surface-variant">מי מתחיל ראשון?</label>
+          <div class="flex items-center justify-between gap-2">
+            <button type="button" onclick="setStarterPlayer(1)" id="starter-btn-1" class="flex-1 h-11 rounded-xl bg-primary-container text-on-primary border border-primary font-bold text-xs shadow-md flex items-center justify-center gap-1.5">
+              <span class="material-symbols-outlined text-[18px]">person</span>
+              <span>שחקן 1</span>
+            </button>
+            <button type="button" onclick="setStarterPlayer(2)" id="starter-btn-2" class="flex-1 h-11 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10 flex items-center justify-center gap-1.5">
+              <span id="starter-icon-2" class="material-symbols-outlined text-[18px]">smart_toy</span>
+              <span id="starter-label-2">מחשב</span>
+            </button>
+          </div>
         </div>
       </div>
 
