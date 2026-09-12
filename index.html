@@ -126,7 +126,6 @@
         <div class="w-full my-2 inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-secondary-container/30 border border-secondary/40 text-secondary text-center shadow-md">
           <span class="font-label-sm text-xs font-bold">מי שנשאר עם הכוכבית האחרונה — מפסיד!</span>
         </div>
-        <p class="text-xs text-on-surface-variant font-bold mt-1 mb-2">בחר מצב משחק להתחלה</p>
       </div>
 
       <div class="w-full flex flex-col gap-4 my-auto">
@@ -146,7 +145,53 @@
           </div>
         </button>
       </div>
-      <div class="w-full"></div>
+      <button type="button" onclick="goToStep(5)" class="w-full flex items-center justify-center gap-1.5 py-1 text-sm font-bold text-primary/90 hover:text-primary underline underline-offset-4 decoration-primary/50 active:scale-95 transition-all">
+        <span class="material-symbols-outlined text-[18px]">menu_book</span>
+        <span>הוראות</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- מסך 5: הוראות -->
+  <div id="setup-view-step5" class="fixed inset-0 z-50 bg-black/70 flex flex-col items-center justify-center p-margin-mobile hidden">
+    <div class="w-[340px] h-[520px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/50 justify-between">
+      <div class="w-full flex items-center justify-between border-b border-white/10 pb-2">
+        <button type="button" onclick="goToStep(1)" class="text-xs text-primary font-bold flex items-center gap-1 hover:underline">
+          <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+          <span>חזור</span>
+        </button>
+        <h2 class="font-game-title text-lg font-black text-primary text-center tracking-wider">הוראות</h2>
+        <div class="w-12"></div>
+      </div>
+
+      <div class="w-full flex-1 overflow-y-auto my-3 flex flex-col gap-2.5 text-right">
+        <p class="text-xs text-on-surface-variant font-bold text-center">משחק חשיבה מתמטי עתיק. חוקים פשוטים, עומק אסטרטגי.</p>
+
+        <article class="rounded-xl bg-[#171c2b] border border-white/10 p-3 flex flex-col gap-1">
+          <h3 class="text-sm font-black text-primary">1. הלוח</h3>
+          <p class="text-xs text-on-surface-variant font-bold leading-relaxed">פירמידה של כוכביות, 2 עד 6 שורות לבחירתכם (ברירת המחדל: 5 שורות, 15 כוכביות).</p>
+        </article>
+
+        <article class="rounded-xl bg-[#171c2b] border border-white/10 p-3 flex flex-col gap-1">
+          <h3 class="text-sm font-black text-primary">2. מהלך התור</h3>
+          <p class="text-xs text-on-surface-variant font-bold leading-relaxed">בכל תור בוחרים כוכבית אחת או יותר, מאותה שורה בלבד, ולוחצים "שחק". הכוכביות שנבחרו נעלמות.</p>
+        </article>
+
+        <article class="rounded-xl bg-secondary-container/30 border border-secondary/40 p-3 flex flex-col gap-1">
+          <h3 class="text-sm font-black text-secondary">3. מי שנשאר עם הכוכבית האחרונה – מפסיד!</h3>
+          <p class="text-xs text-on-surface font-bold leading-relaxed">כשנשארת כוכבית אחת בלבד היא מהבהבת באדום, והשחקן שתורו לקחת אותה מפסיד. המטרה: להשאיר ליריב את הכוכבית האחרונה.</p>
+        </article>
+
+        <article class="rounded-xl bg-[#171c2b] border border-white/10 p-3 flex flex-col gap-1">
+          <h3 class="text-sm font-black text-primary">4. הכפתורים בזירה</h3>
+          <p class="text-xs text-on-surface-variant font-bold leading-relaxed">חץ מסתובב: התחלת הסיבוב מחדש. בית: חזרה למסך הפתיחה.</p>
+        </article>
+      </div>
+
+      <button onclick="goToStep(1)" class="w-full h-11 rounded-xl bg-primary text-on-primary font-headline-md flex items-center justify-center gap-2 shadow-xl active:scale-95 transition-all font-bold text-base">
+        <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+        <span>חזור</span>
+      </button>
     </div>
   </div>
 
@@ -547,6 +592,7 @@
       document.getElementById('setup-view-step2').classList.add('hidden');
       document.getElementById('setup-view-step3').classList.add('hidden');
       document.getElementById('setup-view-step4').classList.add('hidden');
+      document.getElementById('setup-view-step5').classList.add('hidden');
       document.getElementById(`setup-view-step${stepNumber}`).classList.remove('hidden');
       if (stepNumber === 4) renderPyramidPreview(setupRows);
     }
@@ -688,6 +734,12 @@
       const loserNum = winnerNum === 1 ? 2 : 1;
       const winnerName = winnerNum === 1 ? gameState.player1Name : gameState.player2Name;
       const loserName = loserNum === 1 ? gameState.player1Name : gameState.player2Name;
+      // למחשב ניסוח בזכר בלבד; לשחקנים ניסוח ניטרלי (ניצח/ה)
+      const isComputer = (num) => gameState.gameMode === 'ai' && num === 2;
+      const winText = isComputer(winnerNum) ? `${winnerName} ניצח!` : `${winnerName} ניצח/ה!`;
+      const loseText = isComputer(loserNum)
+        ? `${loserName} נשאר עם הכוכבית האחרונה והפסיד.`
+        : `${loserName} נשאר/ה עם הכוכבית האחרונה והפסיד/ה.`;
 
       const commitBtn = document.getElementById('commit-btn');
       commitBtn.disabled = true;
@@ -700,11 +752,11 @@
       endTimer = setTimeout(() => {
         gameState.scores[winnerNum]++;
         gameState.currentPlayer = winnerNum;
-        document.getElementById('turn-text').innerText = `🎉 ${winnerName} ניצח/ה!`;
+        document.getElementById('turn-text').innerText = `🎉 ${winText}`;
         updateHeaderUI();
 
-        document.getElementById('modal-winner-title').innerText = `${winnerName} ניצח/ה!`;
-        document.getElementById('modal-winner-subtitle').innerText = `${loserName} נשאר/ה עם הכוכבית האחרונה והפסיד/ה.`;
+        document.getElementById('modal-winner-title').innerText = winText;
+        document.getElementById('modal-winner-subtitle').innerText = loseText;
         document.getElementById('modal-p1-name').innerText = gameState.player1Name;
         document.getElementById('modal-p2-name').innerText = gameState.player2Name;
         document.getElementById('modal-p1-score').innerText = gameState.scores[1];
