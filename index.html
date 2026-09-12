@@ -225,26 +225,11 @@
 
       <div class="w-full flex flex-col gap-2 text-right my-auto">
         <div class="flex flex-col gap-2 w-full">
-          <button type="button" onclick="setAiDiff(1)" id="diff-btn-1" class="w-full py-1.5 px-3 rounded-xl border flex flex-col items-start gap-0.5 text-right transition-all bg-primary-container text-on-primary border-primary shadow-md">
-            <span class="text-sm font-black">1. מתחיל</span>
-            <span class="text-[11px] font-bold opacity-80">משחק באקראי ומפספס ניצחונות</span>
-          </button>
-          <button type="button" onclick="setAiDiff(2)" id="diff-btn-2" class="w-full py-1.5 px-3 rounded-xl border flex flex-col items-start gap-0.5 text-right transition-all bg-[#171c2b] border-white/20 hover:bg-white/10">
-            <span class="text-sm font-black">2. חובבן</span>
-            <span class="text-[11px] font-bold opacity-80">לא מפספס ניצחון מיידי</span>
-          </button>
-          <button type="button" onclick="setAiDiff(3)" id="diff-btn-3" class="w-full py-1.5 px-3 rounded-xl border flex flex-col items-start gap-0.5 text-right transition-all bg-[#171c2b] border-white/20 hover:bg-white/10">
-            <span class="text-sm font-black">3. בינוני</span>
-            <span class="text-[11px] font-bold opacity-80">חושב לפעמים, ובסוף המשחק לא טועה</span>
-          </button>
-          <button type="button" onclick="setAiDiff(4)" id="diff-btn-4" class="w-full py-1.5 px-3 rounded-xl border flex flex-col items-start gap-0.5 text-right transition-all bg-[#171c2b] border-white/20 hover:bg-white/10">
-            <span class="text-sm font-black">4. מתקדם</span>
-            <span class="text-[11px] font-bold opacity-80">טועה רק לעיתים רחוקות</span>
-          </button>
-          <button type="button" onclick="setAiDiff(5)" id="diff-btn-5" class="w-full py-1.5 px-3 rounded-xl border flex flex-col items-start gap-0.5 text-right transition-all bg-[#171c2b] border-white/20 hover:bg-white/10">
-            <span class="text-sm font-black">5. אלוף</span>
-            <span class="text-[11px] font-bold opacity-80">משחק מושלם ולא טועה אף פעם</span>
-          </button>
+          <button type="button" onclick="setAiDiff(1)" id="diff-btn-1" class="w-full h-10 rounded-xl bg-primary-container text-on-primary border border-primary font-bold text-xs shadow-md">1. מתחיל</button>
+          <button type="button" onclick="setAiDiff(2)" id="diff-btn-2" class="w-full h-10 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10">2. חובבן</button>
+          <button type="button" onclick="setAiDiff(3)" id="diff-btn-3" class="w-full h-10 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10">3. בינוני</button>
+          <button type="button" onclick="setAiDiff(4)" id="diff-btn-4" class="w-full h-10 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10">4. מתקדם</button>
+          <button type="button" onclick="setAiDiff(5)" id="diff-btn-5" class="w-full h-10 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10">5. אלוף</button>
         </div>
       </div>
 
@@ -683,10 +668,9 @@
       setupAiDiffLevel = level;
       for (let l = 1; l <= 5; l++) {
         const btn = document.getElementById(`diff-btn-${l}`);
-        const base = "w-full py-1.5 px-3 rounded-xl border flex flex-col items-start gap-0.5 text-right transition-all ";
-        btn.className = base + ((l === level)
-          ? "bg-primary-container text-on-primary border-primary shadow-md"
-          : "bg-[#171c2b] border-white/20 hover:bg-white/10");
+        btn.className = (l === level)
+          ? "w-full h-10 rounded-xl bg-primary-container text-on-primary border border-primary font-bold text-xs shadow-md"
+          : "w-full h-10 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10";
       }
     }
 
