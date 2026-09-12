@@ -383,7 +383,7 @@
       <div class="relative w-full rounded-2xl bg-[#0d111d] p-space-md shadow-2xl border border-white/15 flex flex-col items-center">
         <div class="flex flex-col items-center justify-center text-center gap-2 w-full">
           <!-- שחקן 1: כחול, נקודה בתחילת השורה. שחקן 2 או המחשב: ורוד, נקודה בסוף השורה -->
-          <div id="active-turn-banner" class="w-[67.5%] flex items-center gap-[5px] py-[5px] px-[11px] rounded-xl border shadow-lg transition-colors bg-player1/15 border-player1/50">
+          <div id="active-turn-banner" class="w-[67.5%] flex items-center gap-[5px] py-[5px] px-6 rounded-xl border shadow-lg transition-colors bg-player1/15 border-player1/50">
             <span class="w-[11px] flex justify-center shrink-0"><span id="turn-dot-start" class="w-[9px] h-[9px] rounded-full dot-ping bg-player1"></span></span>
             <span id="turn-text" class="flex-1 text-center text-base leading-[1.375rem] font-black tracking-wide text-player1">שחקן 1</span>
             <span class="w-[11px] flex justify-center shrink-0"><span id="turn-dot-end" class="w-[9px] h-[9px] rounded-full dot-ping bg-secondary invisible"></span></span>
@@ -826,7 +826,7 @@
       const p1 = gameState.currentPlayer === 1;
       const showDot = !gameState.isGameOverHandled;
       document.getElementById('active-turn-banner').className =
-        'w-[67.5%] flex items-center gap-[5px] py-[5px] px-[11px] rounded-xl border shadow-lg transition-colors ' +
+        'w-[67.5%] flex items-center gap-[5px] py-[5px] px-6 rounded-xl border shadow-lg transition-colors ' +
         (p1 ? 'bg-player1/15 border-player1/50' : 'bg-secondary-container/30 border-secondary/40');
       document.getElementById('turn-text').className =
         'flex-1 text-center text-base leading-[1.375rem] font-black tracking-wide ' + (p1 ? 'text-player1' : 'text-secondary');
