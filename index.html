@@ -103,7 +103,8 @@
             "surface-container-highest": "#313540", "on-primary": "#003640", "outline": "#869397",
             "surface-bright": "#353944", "secondary": "#ffb2b7", "primary": "#4cd7f6",
             "on-surface": "#dfe2f1", "surface-container-high": "#262a35", "surface": "#0f131d",
-            "error": "#ffb4ab"
+            "error": "#ffb4ab",
+            "player1": "#60a5fa"
           },
           borderRadius: { "full": "9999px" },
           spacing: { "margin-mobile": "1rem", "space-md": "1rem", "space-sm": "0.5rem", "space-xs": "0.25rem" },
@@ -312,11 +313,11 @@
         </div>
 
         <div class="flex flex-col gap-3 text-right border-t border-white/10 pt-4 -mt-4">
-          <label class="text-sm font-bold text-primary flex items-center gap-1">
+          <label class="text-sm font-bold text-player1 flex items-center gap-1">
             <span class="material-symbols-outlined text-[18px]">person</span>
             <span>שם שחקן 1:</span>
           </label>
-          <input id="setup-p1-name" type="text" value="שחקן 1" class="w-full h-11 px-3.5 rounded-xl bg-[#171c2b] border border-primary/60 text-on-surface focus:outline-none focus:border-primary text-xs font-bold"/>
+          <input id="setup-p1-name" type="text" value="שחקן 1" class="w-full h-11 px-3.5 rounded-xl bg-[#171c2b] border border-player1/60 text-on-surface focus:outline-none focus:border-player1 text-xs font-bold"/>
         </div>
 
         <div id="p2-name-box" class="flex flex-col gap-3 text-right hidden">
@@ -375,22 +376,24 @@
 
       <div class="relative w-full rounded-2xl bg-[#0d111d] p-space-md shadow-2xl border border-white/15 flex flex-col items-center">
         <div class="flex flex-col items-center justify-center text-center gap-2 w-full">
-          <div id="active-turn-banner" class="inline-flex items-center justify-center gap-2 py-2.5 px-6 rounded-xl bg-primary-container/30 border border-primary/40 shadow-lg transition-all">
-            <span id="turn-dot" class="w-3.5 h-3.5 rounded-full bg-primary animate-ping"></span>
-            <span id="turn-text" class="text-2xl font-black text-primary tracking-wide">שחקן 1 — זה התור שלך!</span>
+          <!-- שחקן 1: כחול, נקודה בתחילת השורה. שחקן 2 או המחשב: ורוד, נקודה בסוף השורה -->
+          <div id="active-turn-banner" class="w-full flex items-center gap-2 py-2.5 px-4 rounded-xl border shadow-lg transition-all bg-player1/15 border-player1/50">
+            <span class="w-4 flex justify-center shrink-0"><span id="turn-dot-start" class="w-3.5 h-3.5 rounded-full animate-ping bg-player1"></span></span>
+            <span id="turn-text" class="flex-1 text-center text-2xl font-black tracking-wide text-player1">שחקן 1</span>
+            <span class="w-4 flex justify-center shrink-0"><span id="turn-dot-end" class="w-3.5 h-3.5 rounded-full animate-ping bg-secondary invisible"></span></span>
           </div>
 
           <div class="flex items-center justify-center gap-6 w-full pt-2">
             <div class="flex flex-col items-center text-center">
               <div class="flex items-center gap-1">
-                <span class="material-symbols-outlined text-[16px] text-primary">person</span>
+                <span class="material-symbols-outlined text-[16px] text-player1">person</span>
                 <span id="p1-display-label" class="text-xs text-on-surface-variant font-bold">שחקן 1</span>
               </div>
-              <span id="p1-score-text" class="text-sm font-bold text-primary">0 ניצחונות</span>
+              <span id="p1-score-text" class="text-sm font-bold text-player1">0 ניצחונות</span>
             </div>
 
             <div class="flex items-center gap-2 bg-[#171c2b] px-4 py-1 rounded-full border border-white/20">
-              <span id="score-p1-num" class="text-xl font-black text-primary">0</span>
+              <span id="score-p1-num" class="text-xl font-black text-player1">0</span>
               <span class="text-sm font-bold opacity-50">:</span>
               <span id="score-p2-num" class="text-xl font-black text-secondary">0</span>
             </div>
@@ -448,7 +451,7 @@
       <div class="w-full bg-[#171c2b] rounded-2xl p-3 border border-white/10 flex items-center justify-around my-1">
         <div class="flex flex-col">
           <span id="modal-p1-name" class="text-xs text-on-surface-variant">שחקן 1</span>
-          <span id="modal-p1-score" class="text-lg font-black text-primary">0</span>
+          <span id="modal-p1-score" class="text-lg font-black text-player1">0</span>
         </div>
         <div class="text-sm font-bold opacity-40">:</div>
         <div class="flex flex-col">
@@ -460,7 +463,7 @@
       <div class="flex flex-col gap-2 w-full pt-1">
         <p class="text-xs font-bold text-on-surface-variant">מי מתחיל בסיבוב הבא?</p>
         <div class="flex gap-2 w-full">
-          <button onclick="startNextRound(1)" class="flex-1 min-w-0 h-11 px-2 rounded-xl bg-primary text-on-primary flex items-center justify-center gap-1.5 shadow-xl active:scale-95 hover:scale-105 transition-all font-bold text-sm cursor-pointer">
+          <button onclick="startNextRound(1)" class="flex-1 min-w-0 h-11 px-2 rounded-xl bg-player1 text-[#0b1b3a] flex items-center justify-center gap-1.5 shadow-xl active:scale-95 hover:scale-105 transition-all font-bold text-sm cursor-pointer">
             <span class="material-symbols-outlined text-[18px]">person</span>
             <span id="next-starter-1-name" class="truncate">שחקן 1</span>
           </button>
@@ -806,8 +809,23 @@
       if (!gameState.isGameOverHandled) {
         const computerTurn = gameState.gameMode === 'ai' && gameState.currentPlayer === 2;
         const curName = gameState.currentPlayer === 1 ? gameState.player1Name : gameState.player2Name;
-        document.getElementById('turn-text').innerText = computerTurn ? 'המחשב חושב...' : `${curName} — זה התור שלך!`;
+        document.getElementById('turn-text').innerText = computerTurn ? 'המחשב חושב...' : curName;
       }
+      styleTurnBanner();
+    }
+
+    // הבאנר של התור: שחקן 1 בכחול והנקודה המהבהבת בתחילת השורה, שחקן 2 או המחשב בוורוד והנקודה בסוף השורה.
+    // בסוף הסיבוב הנקודה נעלמת, כי אין יותר תור
+    function styleTurnBanner() {
+      const p1 = gameState.currentPlayer === 1;
+      const showDot = !gameState.isGameOverHandled;
+      document.getElementById('active-turn-banner').className =
+        'w-full flex items-center gap-2 py-2.5 px-4 rounded-xl border shadow-lg transition-all ' +
+        (p1 ? 'bg-player1/15 border-player1/50' : 'bg-secondary-container/30 border-secondary/40');
+      document.getElementById('turn-text').className =
+        'flex-1 text-center text-2xl font-black tracking-wide ' + (p1 ? 'text-player1' : 'text-secondary');
+      document.getElementById('turn-dot-start').classList.toggle('invisible', !(p1 && showDot));
+      document.getElementById('turn-dot-end').classList.toggle('invisible', !(!p1 && showDot));
     }
 
     function winsText(n) {
@@ -922,6 +940,7 @@
       const tip = document.getElementById('tip-text');
       tip.innerText = lastStar ? 'אזהרה: נותרה כוכבית אחרונה! מהבהבת באדום...' : 'לחץ על כוכבית או רצף סמוך כדי לכבות אותן.';
       tip.classList.toggle('text-error', lastStar);
+      styleTurnBanner();
     }
 
     function toggleStar(row, col) {
@@ -1216,7 +1235,7 @@
       const pill = document.getElementById('demo-player');
       pill.innerText = step.end ? 'סוף המשחק' : step.player ? `תור שחקן ${step.player}` : 'פתיחה';
       pill.className = 'text-[11px] font-black px-2 py-0.5 rounded-full border ' + (
-        step.player === 1 ? 'text-primary border-primary/50 bg-primary/10'
+        step.player === 1 ? 'text-player1 border-player1/50 bg-player1/10'
         : step.player === 2 ? 'text-secondary border-secondary/50 bg-secondary/10'
         : 'text-amber-400 border-amber-400/50 bg-amber-400/10');
       document.getElementById('demo-counter').innerText = `שלב ${index + 1} מתוך ${DEMO_STEPS.length}`;
