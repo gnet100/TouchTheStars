@@ -43,12 +43,13 @@
       text-shadow: 0 0 15px rgba(76, 215, 246, 0.9), 0 2px 4px rgba(0, 0, 0, 0.9);
     }
 
-    @keyframes win-red-blink {
-      0%, 100% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 42, 42, 0.4); }
-      50% { transform: scale(1.18); box-shadow: 0 0 35px rgba(255, 0, 0, 1); background-color: #ff0000; }
+    /* הכוכבית האחרונה: מהבהבת באדום 3 פעמים ונשארת אדומה */
+    @keyframes blink-red-3times {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 42, 42, 0.8); }
+      50% { transform: scale(1.3); box-shadow: 0 0 30px rgba(255, 0, 0, 1); background-color: #ff0000; }
     }
-    .victory-red-blink-slow {
-      animation: win-red-blink 1.2s ease-in-out infinite alternate !important;
+    .last-star-blink-3 {
+      animation: blink-red-3times 0.5s ease-in-out 3 forwards;
       background-color: #ff2a2a !important;
       color: #ffffff !important;
     }
@@ -538,6 +539,7 @@
     };
 
     function goToStep(stepNumber) {
+      clearTimeout(endTimer);
       // הזירה מוסתרת כל עוד אחד ממסכי ההגדרות פתוח (נשאר רק רקע הכוכבים)
       document.getElementById('tab-arena').classList.add('invisible');
       document.getElementById('victory-modal').classList.add('hidden');
@@ -635,6 +637,7 @@
     }
 
     function resetCurrentRound() {
+      clearTimeout(endTimer);
       document.getElementById('victory-modal').classList.add('hidden');
       gameState.isGameOverHandled = false;
       gameState.board = Array.from({ length: gameState.numRows }, (_, i) => new Array(i + 1).fill(true));
@@ -670,42 +673,56 @@
       }
     }
 
+    let endTimer = null;
+
     function checkWinnerAndHandle() {
       const remainingStars = gameState.board.flat().filter(Boolean).length;
-      if (remainingStars === 0 && !gameState.isGameOverHandled) {
-        gameState.isGameOverHandled = true;
-        const winnerNum = gameState.currentPlayer === 1 ? 2 : 1;
+      if (remainingStars > 1 || gameState.isGameOverHandled) return;
+      gameState.isGameOverHandled = true;
+
+      // נשארה כוכבית אחת: מי שהתור שלו לקחת אותה מפסיד, כלומר מי שביצע את המהלך האחרון מנצח.
+      // (אם נלקחו כל הכוכביות במהלך אחד: מי שלקח את האחרונה מפסיד.)
+      const winnerNum = remainingStars === 1
+        ? gameState.currentPlayer
+        : (gameState.currentPlayer === 1 ? 2 : 1);
+      const loserNum = winnerNum === 1 ? 2 : 1;
+      const winnerName = winnerNum === 1 ? gameState.player1Name : gameState.player2Name;
+      const loserName = loserNum === 1 ? gameState.player1Name : gameState.player2Name;
+
+      const commitBtn = document.getElementById('commit-btn');
+      commitBtn.disabled = true;
+      commitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+      document.getElementById('turn-text').innerText = `הכוכבית האחרונה נשארה ל${loserName}!`;
+      renderBoard(); // הכוכבית האחרונה מהבהבת באדום 3 פעמים
+
+      clearTimeout(endTimer);
+      endTimer = setTimeout(() => {
         gameState.scores[winnerNum]++;
         gameState.currentPlayer = winnerNum;
-        const winnerName = winnerNum === 1 ? gameState.player1Name : gameState.player2Name;
-
         document.getElementById('turn-text').innerText = `🎉 ${winnerName} ניצח/ה!`;
         updateHeaderUI();
 
         document.getElementById('modal-winner-title').innerText = `${winnerName} ניצח/ה!`;
+        document.getElementById('modal-winner-subtitle').innerText = `${loserName} נשאר/ה עם הכוכבית האחרונה והפסיד/ה.`;
         document.getElementById('modal-p1-name').innerText = gameState.player1Name;
         document.getElementById('modal-p2-name').innerText = gameState.player2Name;
         document.getElementById('modal-p1-score').innerText = gameState.scores[1];
         document.getElementById('modal-p2-score').innerText = gameState.scores[2];
         document.getElementById('victory-modal').classList.remove('hidden');
 
-        const commitBtn = document.getElementById('commit-btn');
-        commitBtn.disabled = true;
-        commitBtn.classList.add('opacity-50', 'cursor-not-allowed');
-
         if (gameState.gameMode === 'ai' && winnerNum === 2) {
           playDefeatSound();
         } else {
           playVictorySound();
         }
-      }
+      }, remainingStars === 1 ? 1600 : 0);
     }
 
     function renderBoard() {
       const container = document.getElementById('board-container');
       container.innerHTML = '';
-      const remainingStars = gameState.board.flat().filter(Boolean).length;
-      const isGameOver = remainingStars === 0;
+      const isGameOver = gameState.isGameOverHandled;
 
       gameState.board.forEach((row, rowIndex) => {
         const isRowActiveSelection = gameState.selectedRow === rowIndex;
@@ -727,7 +744,7 @@
             btn.id = `star-btn-${rowIndex}-${colIndex}`;
 
             if (isGameOver) {
-              btn.className = "w-11 h-11 rounded-full flex items-center justify-center shadow-lg victory-red-blink-slow transition-transform cursor-default";
+              btn.className = "w-11 h-11 rounded-full flex items-center justify-center shadow-lg last-star-blink-3 cursor-default";
               btn.innerHTML = `<span class="material-symbols-outlined text-[26px]" style="font-variation-settings: 'FILL' 1;">star</span>`;
             } else if (isSelected) {
               btn.onclick = () => { playSelectSound(); toggleStar(rowIndex, colIndex); };
