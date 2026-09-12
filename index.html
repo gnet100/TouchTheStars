@@ -120,7 +120,7 @@
 
   <!-- מסך 1 -->
   <div id="setup-view-step1" class="fixed inset-0 z-50 bg-black/70 flex flex-col items-center justify-center p-margin-mobile">
-    <div class="w-[340px] h-[520px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/50 overflow-y-auto justify-between">
+    <div class="w-[340px] h-[560px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/50 overflow-y-auto justify-between">
       <div class="flex flex-col items-center w-full pt-2">
         <h2 class="font-game-title text-2xl font-black text-primary text-center mb-1 tracking-wider">TOUCH THE STARS</h2>
         <div class="w-full my-2 inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-secondary-container/30 border border-secondary/40 text-secondary text-center shadow-md">
@@ -129,7 +129,7 @@
       </div>
 
       <div class="w-full flex flex-col gap-4 my-auto">
-        <button type="button" onclick="selectGameMode('pvp')" class="w-full rounded-2xl bg-[#171c2b] border-2 border-white/10 hover:border-primary p-4 flex flex-col items-center gap-3 transition-all active:scale-95 group">
+        <button type="button" onclick="selectGameMode('pvp')" class="w-full rounded-2xl bg-[#171c2b] border-2 border-white/10 hover:border-primary p-3 flex flex-col items-center gap-3 transition-all active:scale-95 group">
           <img src="images/two-players.png" alt="שני שחקנים" class="w-24 h-24 rounded-full shadow-[0_0_18px_rgba(76,215,246,0.45)] group-hover:shadow-[0_0_26px_rgba(76,215,246,0.8)] transition-all select-none" draggable="false"/>
           <div class="flex items-center gap-2 text-primary font-black text-base">
             <span class="material-symbols-outlined text-[20px]">group</span>
@@ -137,7 +137,7 @@
           </div>
         </button>
 
-        <button type="button" onclick="selectGameMode('ai')" class="w-full rounded-2xl bg-[#171c2b] border-2 border-white/10 hover:border-primary p-4 flex flex-col items-center gap-3 transition-all active:scale-95 group">
+        <button type="button" onclick="selectGameMode('ai')" class="w-full rounded-2xl bg-[#171c2b] border-2 border-white/10 hover:border-primary p-3 flex flex-col items-center gap-3 transition-all active:scale-95 group">
           <img src="images/vs-computer.png" alt="שחקן מול מחשב" class="w-24 h-24 rounded-full shadow-[0_0_18px_rgba(76,215,246,0.45)] group-hover:shadow-[0_0_26px_rgba(76,215,246,0.8)] transition-all select-none" draggable="false"/>
           <div class="flex items-center gap-2 text-primary font-black text-base">
             <span class="material-symbols-outlined text-[20px]">smart_toy</span>
@@ -145,16 +145,16 @@
           </div>
         </button>
       </div>
-      <button type="button" onclick="goToStep(5)" class="w-full flex items-center justify-center gap-1.5 py-1 text-sm font-bold text-primary/90 hover:text-primary underline underline-offset-4 decoration-primary/50 active:scale-95 transition-all">
-        <span class="material-symbols-outlined text-[18px]">menu_book</span>
+      <button type="button" onclick="goToStep(5)" class="self-start mt-6 mb-4 px-1 py-1 flex items-center gap-1.5 text-sm font-bold text-primary/90 hover:text-primary active:scale-95 transition-all">
         <span>הוראות</span>
+        <span class="material-symbols-outlined text-[18px]">menu_book</span>
       </button>
     </div>
   </div>
 
   <!-- מסך 5: הוראות -->
   <div id="setup-view-step5" class="fixed inset-0 z-50 bg-black/70 flex flex-col items-center justify-center p-margin-mobile hidden">
-    <div class="w-[340px] h-[520px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/50 justify-between">
+    <div class="w-[340px] h-[560px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/50 justify-between">
       <div class="w-full flex items-center justify-between border-b border-white/10 pb-2">
         <button type="button" onclick="goToStep(1)" class="text-xs text-primary font-bold flex items-center gap-1 hover:underline">
           <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
@@ -164,27 +164,25 @@
         <div class="w-12"></div>
       </div>
 
-      <div class="w-full flex-1 overflow-y-auto my-3 flex flex-col gap-2.5 text-right">
-        <p class="text-xs text-on-surface-variant font-bold text-center">משחק חשיבה מתמטי עתיק. חוקים פשוטים, עומק אסטרטגי.</p>
+      <div class="w-full flex-1 overflow-y-auto my-2 flex flex-col gap-2 text-right">
+        <div class="flex flex-col items-center gap-1 text-center">
+          <p class="text-xs text-on-surface-variant font-bold leading-relaxed">משחק חשיבה מתמטי עתיק. חוקים פשוטים<br/>עומק אסטרטגי</p>
+          <p class="text-sm text-primary font-black">המטרה: להשאיר ליריב את הכוכבית האחרונה</p>
+        </div>
 
-        <article class="rounded-xl bg-[#171c2b] border border-white/10 p-3 flex flex-col gap-1">
+        <article class="rounded-xl bg-[#171c2b] border border-white/10 p-2.5 flex flex-col gap-1">
           <h3 class="text-sm font-black text-primary">1. הלוח</h3>
           <p class="text-xs text-on-surface-variant font-bold leading-relaxed">פירמידה של כוכביות, 2 עד 6 שורות לבחירתכם (ברירת המחדל: 5 שורות, 15 כוכביות).</p>
         </article>
 
-        <article class="rounded-xl bg-[#171c2b] border border-white/10 p-3 flex flex-col gap-1">
+        <article class="rounded-xl bg-[#171c2b] border border-white/10 p-2.5 flex flex-col gap-1">
           <h3 class="text-sm font-black text-primary">2. מהלך התור</h3>
-          <p class="text-xs text-on-surface-variant font-bold leading-relaxed">בכל תור בוחרים כוכבית אחת או יותר, מאותה שורה בלבד, ולוחצים "שחק". הכוכביות שנבחרו נעלמות.</p>
+          <p class="text-xs text-on-surface-variant font-bold leading-relaxed">בכל תור בוחרים כוכבית אחת או יותר, מאותה שורה בלבד, וברצף של כוכביות זוהרות (כוכבית כבויה עוצרת את הרצף), ולוחצים "שחק". הכוכביות שנבחרו נעלמות.</p>
         </article>
 
-        <article class="rounded-xl bg-secondary-container/30 border border-secondary/40 p-3 flex flex-col gap-1">
-          <h3 class="text-sm font-black text-secondary">3. מי שנשאר עם הכוכבית האחרונה – מפסיד!</h3>
-          <p class="text-xs text-on-surface font-bold leading-relaxed">כשנשארת כוכבית אחת בלבד היא מהבהבת באדום, והשחקן שתורו לקחת אותה מפסיד. המטרה: להשאיר ליריב את הכוכבית האחרונה.</p>
-        </article>
-
-        <article class="rounded-xl bg-[#171c2b] border border-white/10 p-3 flex flex-col gap-1">
-          <h3 class="text-sm font-black text-primary">4. הכפתורים בזירה</h3>
-          <p class="text-xs text-on-surface-variant font-bold leading-relaxed">חץ מסתובב: התחלת הסיבוב מחדש. בית: חזרה למסך הפתיחה.</p>
+        <article class="rounded-xl bg-[#171c2b] border border-white/10 p-2.5 flex flex-col gap-1">
+          <h3 class="text-sm font-black text-primary">3. מי שנשאר עם הכוכבית האחרונה – מפסיד!</h3>
+          <p class="text-xs text-on-surface-variant font-bold leading-relaxed">כשנשארת כוכבית אחת בלבד היא מהבהבת באדום, והשחקן שתורו לקחת אותה מפסיד.</p>
         </article>
       </div>
 
@@ -197,7 +195,7 @@
 
   <!-- מסך 2 -->
   <div id="setup-view-step2" class="fixed inset-0 z-50 bg-black/70 flex flex-col items-center justify-center p-margin-mobile hidden">
-    <div class="w-[340px] h-[520px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/50 overflow-y-auto justify-between">
+    <div class="w-[340px] h-[560px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/50 overflow-y-auto justify-between">
       <div class="w-full flex items-center justify-between border-b border-white/10 pb-2">
         <button type="button" onclick="goToStep(1)" class="text-xs text-primary font-bold flex items-center gap-1 hover:underline">
           <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
@@ -227,7 +225,7 @@
 
   <!-- מסך 3 -->
   <div id="setup-view-step3" class="fixed inset-0 z-50 bg-black/70 flex flex-col items-center justify-center p-margin-mobile hidden">
-    <div class="w-[340px] h-[520px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/50 overflow-y-auto justify-between">
+    <div class="w-[340px] h-[560px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/50 overflow-y-auto justify-between">
       <div class="w-full flex items-center justify-between border-b border-white/10 pb-2">
         <button type="button" onclick="goBackFromStep3()" class="text-xs text-primary font-bold flex items-center gap-1 hover:underline">
           <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
@@ -278,7 +276,7 @@
 
   <!-- מסך 4 -->
   <div id="setup-view-step4" class="fixed inset-0 z-50 bg-black/70 flex flex-col items-center justify-center p-margin-mobile hidden">
-    <div class="w-[340px] h-[520px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/50 overflow-y-auto justify-between">
+    <div class="w-[340px] h-[560px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/50 overflow-y-auto justify-between">
       <div class="w-full flex items-center justify-between border-b border-white/10 pb-2">
         <button type="button" onclick="goToStep(3)" class="text-xs text-primary font-bold flex items-center gap-1 hover:underline">
           <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
