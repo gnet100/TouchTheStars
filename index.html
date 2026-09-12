@@ -40,6 +40,8 @@
       #board-container > * + * { margin-top: 0.3rem; }
       #board-container > div { padding-top: 0.25rem; padding-bottom: 0.25rem; }
       #board-container .w-9 { width: 2rem; height: 2rem; }
+      #board-tip { margin-top: 0.4rem; padding: 0.3rem 0.5rem; }
+      #tab-arena { padding-bottom: 0.5rem; }
     }
 
     #space-bg-canvas {
@@ -223,11 +225,26 @@
 
       <div class="w-full flex flex-col gap-2 text-right my-auto">
         <div class="flex flex-col gap-2 w-full">
-          <button type="button" onclick="setAiDiff(1)" id="diff-btn-1" class="w-full h-10 rounded-xl bg-primary-container text-on-primary border border-primary font-bold text-xs shadow-md">1. מתחיל</button>
-          <button type="button" onclick="setAiDiff(2)" id="diff-btn-2" class="w-full h-10 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10">2. חובבן</button>
-          <button type="button" onclick="setAiDiff(3)" id="diff-btn-3" class="w-full h-10 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10">3. בינוני</button>
-          <button type="button" onclick="setAiDiff(4)" id="diff-btn-4" class="w-full h-10 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10">4. מתקדם</button>
-          <button type="button" onclick="setAiDiff(5)" id="diff-btn-5" class="w-full h-10 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10">5. אלוף</button>
+          <button type="button" onclick="setAiDiff(1)" id="diff-btn-1" class="w-full py-1.5 px-3 rounded-xl border flex flex-col items-start gap-0.5 text-right transition-all bg-primary-container text-on-primary border-primary shadow-md">
+            <span class="text-sm font-black">1. מתחיל</span>
+            <span class="text-[11px] font-bold opacity-80">משחק באקראי ומפספס ניצחונות</span>
+          </button>
+          <button type="button" onclick="setAiDiff(2)" id="diff-btn-2" class="w-full py-1.5 px-3 rounded-xl border flex flex-col items-start gap-0.5 text-right transition-all bg-[#171c2b] border-white/20 hover:bg-white/10">
+            <span class="text-sm font-black">2. חובבן</span>
+            <span class="text-[11px] font-bold opacity-80">לא מפספס ניצחון מיידי</span>
+          </button>
+          <button type="button" onclick="setAiDiff(3)" id="diff-btn-3" class="w-full py-1.5 px-3 rounded-xl border flex flex-col items-start gap-0.5 text-right transition-all bg-[#171c2b] border-white/20 hover:bg-white/10">
+            <span class="text-sm font-black">3. בינוני</span>
+            <span class="text-[11px] font-bold opacity-80">חושב לפעמים, ובסוף המשחק לא טועה</span>
+          </button>
+          <button type="button" onclick="setAiDiff(4)" id="diff-btn-4" class="w-full py-1.5 px-3 rounded-xl border flex flex-col items-start gap-0.5 text-right transition-all bg-[#171c2b] border-white/20 hover:bg-white/10">
+            <span class="text-sm font-black">4. מתקדם</span>
+            <span class="text-[11px] font-bold opacity-80">טועה רק לעיתים רחוקות</span>
+          </button>
+          <button type="button" onclick="setAiDiff(5)" id="diff-btn-5" class="w-full py-1.5 px-3 rounded-xl border flex flex-col items-start gap-0.5 text-right transition-all bg-[#171c2b] border-white/20 hover:bg-white/10">
+            <span class="text-sm font-black">5. אלוף</span>
+            <span class="text-[11px] font-bold opacity-80">משחק מושלם ולא טועה אף פעם</span>
+          </button>
         </div>
       </div>
 
@@ -377,6 +394,11 @@
             <span class="material-symbols-outlined text-[22px] text-tertiary">home</span>
           </button>
         </div>
+
+        <div id="board-tip" class="mt-2.5 w-full flex items-center gap-1.5 p-2 rounded-xl bg-black/30 text-on-surface-variant border border-white/5">
+          <span class="material-symbols-outlined text-[18px] text-tertiary">lightbulb</span>
+          <span id="tip-text" class="text-xs font-bold">לחץ על כוכבית או רצף סמוך כדי לכבות אותן.</span>
+        </div>
       </div>
 
     </div>
@@ -407,10 +429,17 @@
       </div>
 
       <div class="flex flex-col gap-2 w-full pt-1">
-        <button onclick="closeVictoryModalAndReset()" class="w-full h-11 rounded-xl bg-primary text-on-primary font-headline-md flex items-center justify-center gap-2 shadow-xl active:scale-95 transition-all font-bold text-sm cursor-pointer">
-          <span class="material-symbols-outlined text-[18px]">refresh</span>
-          <span>שחק סיבוב נוסף</span>
-        </button>
+        <p class="text-xs font-bold text-on-surface-variant">מי מתחיל בסיבוב הבא?</p>
+        <div class="flex gap-2 w-full">
+          <button onclick="startNextRound(1)" class="flex-1 min-w-0 h-11 px-2 rounded-xl bg-primary text-on-primary flex items-center justify-center gap-1.5 shadow-xl active:scale-95 hover:scale-105 transition-all font-bold text-sm cursor-pointer">
+            <span class="material-symbols-outlined text-[18px]">person</span>
+            <span id="next-starter-1-name" class="truncate">שחקן 1</span>
+          </button>
+          <button onclick="startNextRound(2)" class="flex-1 min-w-0 h-11 px-2 rounded-xl bg-secondary text-[#4a0016] flex items-center justify-center gap-1.5 shadow-xl active:scale-95 hover:scale-105 transition-all font-bold text-sm cursor-pointer">
+            <span id="next-starter-2-icon" class="material-symbols-outlined text-[18px]">smart_toy</span>
+            <span id="next-starter-2-name" class="truncate">מחשב</span>
+          </button>
+        </div>
 
         <button onclick="goToStartFromModal()" class="w-full h-11 rounded-xl bg-[#171c2b] text-on-surface border border-white/20 font-headline-md flex items-center justify-center gap-2 hover:bg-white/15 active:scale-95 transition-all font-bold text-sm cursor-pointer">
           <span class="material-symbols-outlined text-[18px] text-tertiary">home</span>
@@ -654,9 +683,10 @@
       setupAiDiffLevel = level;
       for (let l = 1; l <= 5; l++) {
         const btn = document.getElementById(`diff-btn-${l}`);
-        btn.className = (l === level)
-          ? "w-full h-10 rounded-xl bg-primary-container text-on-primary border border-primary font-bold text-xs shadow-md"
-          : "w-full h-10 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10";
+        const base = "w-full py-1.5 px-3 rounded-xl border flex flex-col items-start gap-0.5 text-right transition-all ";
+        btn.className = base + ((l === level)
+          ? "bg-primary-container text-on-primary border-primary shadow-md"
+          : "bg-[#171c2b] border-white/20 hover:bg-white/10");
       }
     }
 
@@ -727,7 +757,9 @@
       if (gameState.currentPlayer === 2 && gameState.gameMode === 'ai') handleAiTurn();
     }
 
-    function closeVictoryModalAndReset() {
+    // ממסך סוף הסיבוב: בוחרים מי מתחיל ומתחילים סיבוב חדש. הניקוד נשמר
+    function startNextRound(starter) {
+      gameState.starterPlayer = starter;
       resetCurrentRound();
     }
 
@@ -792,6 +824,9 @@
         document.getElementById('modal-winner-subtitle').innerText = loseText;
         document.getElementById('modal-p1-name').innerText = gameState.player1Name;
         document.getElementById('modal-p2-name').innerText = gameState.player2Name;
+        document.getElementById('next-starter-1-name').innerText = gameState.player1Name;
+        document.getElementById('next-starter-2-name').innerText = gameState.player2Name;
+        document.getElementById('next-starter-2-icon').innerText = gameState.gameMode === 'ai' ? 'smart_toy' : 'person_outline';
         document.getElementById('modal-p1-score').innerText = gameState.scores[1];
         document.getElementById('modal-p2-score').innerText = gameState.scores[2];
         document.getElementById('victory-modal').classList.remove('hidden');
@@ -855,6 +890,12 @@
       commitBtn.disabled = !canPlay;
       commitBtn.classList.toggle('opacity-50', !canPlay);
       commitBtn.classList.toggle('cursor-not-allowed', !canPlay);
+
+      // רמז מתחת ללוח. כשנשארת כוכבית אחרונה הוא הופך לאזהרה
+      const lastStar = gameState.isGameOverHandled && countStars(gameState.board) === 1;
+      const tip = document.getElementById('tip-text');
+      tip.innerText = lastStar ? 'אזהרה: נותרה כוכבית אחרונה! מהבהבת באדום...' : 'לחץ על כוכבית או רצף סמוך כדי לכבות אותן.';
+      tip.classList.toggle('text-error', lastStar);
     }
 
     function toggleStar(row, col) {
