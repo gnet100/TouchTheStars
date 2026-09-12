@@ -265,7 +265,7 @@
   </div>
 
   <!-- ARENA: זירת המשחק -->
-  <main id="tab-arena" class="flex flex-col relative w-full pt-20 pb-24 min-h-screen z-10">
+  <main id="tab-arena" class="flex flex-col relative w-full pt-20 pb-24 min-h-screen z-10 invisible">
     <div class="flex flex-col w-full max-w-md mx-auto px-margin-mobile space-y-3.5 select-none">
 
       <div class="relative w-full rounded-2xl bg-[#0d111d] p-space-md shadow-2xl border border-white/15 flex flex-col items-center">
@@ -538,6 +538,8 @@
     };
 
     function goToStep(stepNumber) {
+      // הזירה מוסתרת כל עוד אחד ממסכי ההגדרות פתוח (נשאר רק רקע הכוכבים)
+      document.getElementById('tab-arena').classList.add('invisible');
       document.getElementById('victory-modal').classList.add('hidden');
       document.getElementById('setup-view-step1').classList.add('hidden');
       document.getElementById('setup-view-step2').classList.add('hidden');
@@ -628,6 +630,7 @@
       gameState.starterPlayer = setupStarterPlayer;
 
       document.getElementById('setup-view-step4').classList.add('hidden');
+      document.getElementById('tab-arena').classList.remove('invisible');
       resetCurrentRound();
     }
 
