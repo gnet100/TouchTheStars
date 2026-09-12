@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+  <title>Touch the Stars - כוכבי החשיבה</title>
+  <meta name="description" content="משחק חשיבה לשניים: מי שנשאר עם הכוכבית האחרונה מפסיד"/>
+  <meta name="theme-color" content="#0b0f19"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Touch the Stars"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="icon" href="favicon.ico" sizes="any"/>
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"/>
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&family=Fredoka:wght@600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+  <style>
+    @layer base {
+      html, body { width: 100vw; height: 100vh; margin: 0; padding: 0; overflow: hidden; color: #dfe2f1; }
+      .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+      .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+    }
+    ::-webkit-scrollbar { display: none; }
+
+    #space-bg-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .font-game-title {
+      font-family: 'Fredoka', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-shadow: 0 0 15px rgba(76, 215, 246, 0.9), 0 2px 4px rgba(0, 0, 0, 0.9);
+    }
+
+    @keyframes win-red-blink {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 42, 42, 0.4); }
+      50% { transform: scale(1.18); box-shadow: 0 0 35px rgba(255, 0, 0, 1); background-color: #ff0000; }
+    }
+    .victory-red-blink-slow {
+      animation: win-red-blink 1.2s ease-in-out infinite alternate !important;
+      background-color: #ff2a2a !important;
+      color: #ffffff !important;
+    }
+
+    @keyframes star-pop-explosion {
+      0% { transform: scale(1); opacity: 1; filter: drop-shadow(0 0 5px rgba(76, 215, 246, 0.8)); }
+      50% { transform: scale(1.6); opacity: 0.8; filter: drop-shadow(0 0 20px rgba(255, 255, 255, 1)); background-color: rgba(255, 255, 255, 0.4); }
+      100% { transform: scale(0.2); opacity: 0; filter: drop-shadow(0 0 0px transparent); }
+    }
+    .star-exploding {
+      animation: star-pop-explosion 0.35s ease-out forwards;
+    }
+
+    @keyframes modal-pop {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .modal-animation {
+      animation: modal-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-variant": "#313540", "background": "#0f131d",
+            "tertiary": "#7bd0ff", "surface-container": "#1c1f2a",
+            "primary-container": "#06b6d4", "surface-container-low": "#171b26",
+            "secondary-container": "#b50036", "on-surface-variant": "#bcc9cd",
+            "surface-container-highest": "#313540", "on-primary": "#003640", "outline": "#869397",
+            "surface-bright": "#353944", "secondary": "#ffb2b7", "primary": "#4cd7f6",
+            "on-surface": "#dfe2f1", "surface-container-high": "#262a35", "surface": "#0f131d",
+            "error": "#ffb4ab"
+          },
+          borderRadius: { "full": "9999px" },
+          spacing: { "margin-mobile": "1rem", "space-md": "1rem", "space-sm": "0.5rem", "space-xs": "0.25rem" },
+          fontFamily: { "headline-md": ["Rubik"], "headline-xl-mobile": ["Rubik"], "body-sm": ["Rubik"], "label-lg": ["Rubik"], "label-sm": ["Rubik"], "headline-xl": ["Rubik"], "body-md": ["Rubik"], "label-md": ["Rubik"], "headline-lg": ["Rubik"] }
+        }
+      }
+    }
+  </script>
+</head>
+<body id="app-body" class="bg-[#02040a] font-body-md text-body-md text-on-surface min-h-screen flex flex-col antialiased relative">
+
+  <canvas id="space-bg-canvas"></canvas>
+
+  <header class="fixed top-0 w-full z-40 pt-safe bg-[#0b0f19]/80 border-b border-white/20 shadow-lg">
+    <div class="h-16 px-margin-mobile flex items-center justify-between">
+      <div class="flex items-center gap-space-sm">
+        <div class="w-8 h-8 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center text-primary">
+          <span class="material-symbols-outlined text-[20px]">star</span>
+        </div>
+        <div class="flex flex-col">
+          <div class="flex items-center gap-space-xs">
+            <span class="font-game-title text-xl font-extrabold text-primary tracking-wide">Touch the stars</span>
+            <span class="font-label-sm text-label-sm text-on-surface-variant bg-black/80 px-space-xs py-0.5 rounded-full border border-white/20">כוכבי החשיבה</span>
+          </div>
+        </div>
+      </div>
+      <button onclick="goToStep(1)" class="w-10 h-10 rounded-full bg-[#171c2b] border border-white/20 flex items-center justify-center text-on-surface active:scale-95 hover:bg-white/20 transition-all" title="הגדרת משחק חדש">
+        <span class="material-symbols-outlined text-[20px]">tune</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- מסך 1 -->
+  <div id="setup-view-step1" class="fixed inset-0 z-50 bg-black/70 flex flex-col items-center justify-center p-margin-mobile">
+    <div class="w-[340px] h-[520px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/50 overflow-y-auto justify-between">
+      <div class="flex flex-col items-center w-full pt-2">
+        <h2 class="font-game-title text-2xl font-black text-primary text-center mb-1 tracking-wider">TOUCH THE STARS</h2>
+        <div class="w-full my-2 inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-secondary-container/30 border border-secondary/40 text-secondary text-center shadow-md">
+          <span class="font-label-sm text-xs font-bold">מי שנשאר עם הכוכבית האחרונה — מפסיד!</span>
+        </div>
+        <p class="text-xs text-on-surface-variant font-bold mt-1 mb-2">בחר מצב משחק להתחלה</p>
+      </div>
+
+      <div class="w-full flex flex-col gap-4 my-auto">
+        <button type="button" onclick="selectGameMode('pvp')" class="w-full rounded-2xl bg-[#171c2b] border-2 border-white/10 hover:border-primary p-4 flex flex-col items-center gap-3 transition-all active:scale-95 group">
+          <img src="images/two-players.png" alt="שני שחקנים" class="w-24 h-24 rounded-full shadow-[0_0_18px_rgba(76,215,246,0.45)] group-hover:shadow-[0_0_26px_rgba(76,215,246,0.8)] transition-all select-none" draggable="false"/>
+          <div class="flex items-center gap-2 text-primary font-black text-base">
+            <span class="material-symbols-outlined text-[20px]">group</span>
+            <span>שני שחקנים</span>
+          </div>
+        </button>
+
+        <button type="button" onclick="selectGameMode('ai')" class="w-full rounded-2xl bg-[#171c2b] border-2 border-white/10 hover:border-primary p-4 flex flex-col items-center gap-3 transition-all active:scale-95 group">
+          <img src="images/vs-computer.png" alt="שחקן מול מחשב" class="w-24 h-24 rounded-full shadow-[0_0_18px_rgba(76,215,246,0.45)] group-hover:shadow-[0_0_26px_rgba(76,215,246,0.8)] transition-all select-none" draggable="false"/>
+          <div class="flex items-center gap-2 text-primary font-black text-base">
+            <span class="material-symbols-outlined text-[20px]">smart_toy</span>
+            <span>שחקן מול מחשב</span>
+          </div>
+        </button>
+      </div>
+      <div class="w-full"></div>
+    </div>
+  </div>
+
+  <!-- מסך 2 -->
+  <div id="setup-view-step2" class="fixed inset-0 z-50 bg-black/70 flex flex-col items-center justify-center p-margin-mobile hidden">
+    <div class="w-[340px] h-[520px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/50 overflow-y-auto justify-between">
+      <div class="w-full flex items-center justify-between border-b border-white/10 pb-2">
+        <button type="button" onclick="goToStep(1)" class="text-xs text-primary font-bold flex items-center gap-1 hover:underline">
+          <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+          <span>חזור</span>
+        </button>
+        <h2 class="font-game-title text-lg font-black text-primary text-center tracking-wider">רמת קושי</h2>
+        <div class="w-12"></div>
+      </div>
+
+      <div class="w-full flex flex-col gap-2 text-right my-auto">
+        <label class="text-xs font-bold text-secondary mb-1">בחירת רמת קושי המחשב:</label>
+        <div class="flex flex-col gap-2 w-full">
+          <button type="button" onclick="setAiDiff(1)" id="diff-btn-1" class="w-full h-10 rounded-xl bg-primary-container text-on-primary border border-primary font-bold text-xs shadow-md">1. מתחיל</button>
+          <button type="button" onclick="setAiDiff(2)" id="diff-btn-2" class="w-full h-10 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10">2. חובבן</button>
+          <button type="button" onclick="setAiDiff(3)" id="diff-btn-3" class="w-full h-10 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10">3. בינוני</button>
+          <button type="button" onclick="setAiDiff(4)" id="diff-btn-4" class="w-full h-10 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10">4. מתקדם</button>
+          <button type="button" onclick="setAiDiff(5)" id="diff-btn-5" class="w-full h-10 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10">5. אלוף</button>
+        </div>
+      </div>
+
+      <button onclick="goToStep(3)" class="w-full h-11 rounded-xl bg-primary text-on-primary font-headline-md flex items-center justify-center gap-2 shadow-xl active:scale-95 transition-all font-bold text-base">
+        <span>המשך</span>
+        <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- מסך 3 -->
+  <div id="setup-view-step3" class="fixed inset-0 z-50 bg-black/70 flex flex-col items-center justify-center p-margin-mobile hidden">
+    <div class="w-[340px] h-[520px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/50 overflow-y-auto justify-between">
+      <div class="w-full flex items-center justify-between border-b border-white/10 pb-2">
+        <button type="button" onclick="goBackFromStep3()" class="text-xs text-primary font-bold flex items-center gap-1 hover:underline">
+          <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+          <span>חזור</span>
+        </button>
+        <h2 class="font-game-title text-lg font-black text-primary text-center tracking-wider">הגדרות השחקנים</h2>
+        <div class="w-12"></div>
+      </div>
+
+      <div class="w-full flex flex-col justify-start pt-4 gap-8 mb-auto">
+        <div class="flex flex-col gap-3 text-right">
+          <label class="text-sm font-bold text-on-surface-variant">מי מתחיל ראשון?</label>
+          <div class="flex items-center justify-between gap-2">
+            <button type="button" onclick="setStarterPlayer(1)" id="starter-btn-1" class="flex-1 h-11 rounded-xl bg-primary-container text-on-primary border border-primary font-bold text-xs shadow-md flex items-center justify-center gap-1.5">
+              <span class="material-symbols-outlined text-[18px]">person</span>
+              <span>שחקן 1</span>
+            </button>
+            <button type="button" onclick="setStarterPlayer(2)" id="starter-btn-2" class="flex-1 h-11 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10 flex items-center justify-center gap-1.5">
+              <span id="starter-icon-2" class="material-symbols-outlined text-[18px]">smart_toy</span>
+              <span id="starter-label-2">מחשב</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-3 text-right">
+          <label class="text-sm font-bold text-primary flex items-center gap-1">
+            <span class="material-symbols-outlined text-[18px]">person</span>
+            <span>שם שחקן 1:</span>
+          </label>
+          <input id="setup-p1-name" type="text" value="שחקן 1" class="w-full h-11 px-3.5 rounded-xl bg-[#171c2b] border border-primary/60 text-on-surface focus:outline-none focus:border-primary text-xs font-bold"/>
+        </div>
+
+        <div id="p2-name-box" class="flex flex-col gap-3 text-right hidden">
+          <label class="text-sm font-bold text-secondary flex items-center gap-1">
+            <span class="material-symbols-outlined text-[18px]">person_outline</span>
+            <span>שם שחקן 2:</span>
+          </label>
+          <input id="setup-p2-name" type="text" value="שחקן 2" class="w-full h-11 px-3.5 rounded-xl bg-[#171c2b] border border-secondary/60 text-on-surface focus:outline-none focus:border-secondary text-xs font-bold"/>
+        </div>
+      </div>
+
+      <button onclick="goToStep(4)" class="w-full h-11 rounded-xl bg-primary text-on-primary font-headline-md flex items-center justify-center gap-2 shadow-xl active:scale-95 transition-all font-bold text-base mt-4">
+        <span>המשך</span>
+        <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- מסך 4 -->
+  <div id="setup-view-step4" class="fixed inset-0 z-50 bg-black/70 flex flex-col items-center justify-center p-margin-mobile hidden">
+    <div class="w-[340px] h-[520px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/50 overflow-y-auto justify-between">
+      <div class="w-full flex items-center justify-between border-b border-white/10 pb-2">
+        <button type="button" onclick="goToStep(3)" class="text-xs text-primary font-bold flex items-center gap-1 hover:underline">
+          <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+          <span>חזור</span>
+        </button>
+        <h2 class="font-game-title text-lg font-black text-primary text-center tracking-wider">גודל הלוח</h2>
+        <div class="w-12"></div>
+      </div>
+
+      <div class="w-full flex flex-col items-center justify-center my-auto space-y-3">
+        <div id="pyramid-preview-container" class="w-full bg-[#171c2b] rounded-2xl p-4 border border-white/10 flex flex-col items-center justify-center space-y-1.5 min-h-[160px]"></div>
+
+        <div class="w-full flex flex-col gap-2 text-right">
+          <label class="text-sm font-bold text-on-surface-variant text-center">מספר שורות פירמידה:</label>
+          <div class="flex items-center justify-between gap-1.5 w-full">
+            <button type="button" onclick="selectRows(2)" id="row-btn-2" class="row-sel-btn flex-1 h-12 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-base">2</button>
+            <button type="button" onclick="selectRows(3)" id="row-btn-3" class="row-sel-btn flex-1 h-12 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-base">3</button>
+            <button type="button" onclick="selectRows(4)" id="row-btn-4" class="row-sel-btn flex-1 h-12 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-base">4</button>
+            <button type="button" onclick="selectRows(5)" id="row-btn-5" class="row-sel-btn flex-1 h-12 rounded-xl bg-primary-container text-on-primary border border-primary font-bold text-base shadow-md">5</button>
+            <button type="button" onclick="selectRows(6)" id="row-btn-6" class="row-sel-btn flex-1 h-12 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-base">6</button>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="applySetupAndStart()" class="w-full h-12 rounded-xl bg-primary text-on-primary font-headline-md flex items-center justify-center gap-2 shadow-xl active:scale-95 transition-all font-bold text-base">
+        <span class="material-symbols-outlined text-[22px]">play_arrow</span>
+        <span>התחל משחק</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ARENA: זירת המשחק -->
+  <main id="tab-arena" class="flex flex-col relative w-full pt-20 pb-24 min-h-screen z-10">
+    <div class="flex flex-col w-full max-w-md mx-auto px-margin-mobile space-y-3.5 select-none">
+
+      <div class="relative w-full rounded-2xl bg-[#0d111d] p-space-md shadow-2xl border border-white/15 flex flex-col items-center">
+        <div class="flex flex-col items-center justify-center text-center gap-2 w-full">
+          <div id="active-turn-banner" class="inline-flex items-center justify-center gap-2 py-2.5 px-6 rounded-xl bg-primary-container/30 border border-primary/40 shadow-lg transition-all">
+            <span id="turn-dot" class="w-3.5 h-3.5 rounded-full bg-primary animate-ping"></span>
+            <span id="turn-text" class="text-2xl font-black text-primary tracking-wide">שחקן 1 — זה התור שלך!</span>
+          </div>
+
+          <div class="flex items-center justify-center gap-6 w-full pt-2">
+            <div class="flex flex-col items-center text-center">
+              <div class="flex items-center gap-1">
+                <span class="material-symbols-outlined text-[16px] text-primary">person</span>
+                <span id="p1-display-label" class="text-xs text-on-surface-variant font-bold">שחקן 1</span>
+              </div>
+              <span id="p1-score-text" class="text-sm font-bold text-primary">0 ניצחונות</span>
+            </div>
+
+            <div class="flex items-center gap-2 bg-[#171c2b] px-4 py-1 rounded-full border border-white/20">
+              <span id="score-p1-num" class="text-xl font-black text-primary">0</span>
+              <span class="text-sm font-bold opacity-50">:</span>
+              <span id="score-p2-num" class="text-xl font-black text-secondary">0</span>
+            </div>
+
+            <div class="flex flex-col items-center text-center">
+              <div class="flex items-center gap-1">
+                <span id="p2-icon-header" class="material-symbols-outlined text-[16px] text-secondary">smart_toy</span>
+                <span id="p2-display-label" class="text-xs text-on-surface-variant font-bold">מחשב</span>
+              </div>
+              <span id="p2-score-text" class="text-sm font-bold text-secondary">0 ניצחונות</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="relative w-full rounded-2xl bg-[#0d111d] p-space-md flex flex-col items-center shadow-2xl border border-white/15">
+        <div class="w-full flex flex-col items-center space-y-2 py-space-xs" id="board-container"></div>
+
+        <div class="w-full flex items-center justify-center gap-3 mt-3 pt-2 border-t border-white/10">
+          <button id="commit-btn" type="button" onclick="commitMove()" class="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-xl bg-primary-container text-on-primary shadow-md font-bold text-base hover:opacity-95 active:scale-98 transition-all cursor-pointer">
+            <span class="material-symbols-outlined text-[18px]">play_arrow</span>
+            <span id="btn-play-text">שחק</span>
+          </button>
+
+          <button id="restart-btn" type="button" onclick="resetCurrentRound()" class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-xl bg-[#171c2b] text-on-surface border border-white/20 shadow-md font-bold text-base hover:bg-white/20 active:scale-98 transition-all cursor-pointer">
+            <span class="material-symbols-outlined text-[18px] text-tertiary">refresh</span>
+            <span>התחל מחדש</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- הודעת ניצחון מוקפצת (מודאל) -->
+  <div id="victory-modal" class="fixed inset-0 z-50 bg-black/80 flex flex-col items-center justify-center p-margin-mobile hidden">
+    <div class="w-[340px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/60 text-center modal-animation space-y-3.5">
+      <div class="w-16 h-16 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center text-primary shadow-lg animate-bounce">
+        <span class="material-symbols-outlined text-[36px]" style="font-variation-settings: 'FILL' 1;">trophy</span>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <h2 id="modal-winner-title" class="font-game-title text-2xl font-black text-primary tracking-wide">שחקן ניצח!</h2>
+        <p id="modal-winner-subtitle" class="text-xs text-on-surface-variant font-bold">השחקן השני נשאר עם הכוכבית האחרונה והפסיד.</p>
+      </div>
+
+      <div class="w-full bg-[#171c2b] rounded-2xl p-3 border border-white/10 flex items-center justify-around my-1">
+        <div class="flex flex-col">
+          <span id="modal-p1-name" class="text-xs text-on-surface-variant">שחקן 1</span>
+          <span id="modal-p1-score" class="text-lg font-black text-primary">0</span>
+        </div>
+        <div class="text-sm font-bold opacity-40">:</div>
+        <div class="flex flex-col">
+          <span id="modal-p2-name" class="text-xs text-on-surface-variant">מחשב</span>
+          <span id="modal-p2-score" class="text-lg font-black text-secondary">0</span>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-2 w-full pt-1">
+        <button onclick="closeVictoryModalAndReset()" class="w-full h-11 rounded-xl bg-primary text-on-primary font-headline-md flex items-center justify-center gap-2 shadow-xl active:scale-95 transition-all font-bold text-sm cursor-pointer">
+          <span class="material-symbols-outlined text-[18px]">refresh</span>
+          <span>שחק סיבוב נוסף</span>
+        </button>
+
+        <button onclick="goToStartFromModal()" class="w-full h-11 rounded-xl bg-[#171c2b] text-on-surface border border-white/20 font-headline-md flex items-center justify-center gap-2 hover:bg-white/15 active:scale-95 transition-all font-bold text-sm cursor-pointer">
+          <span class="material-symbols-outlined text-[18px] text-tertiary">home</span>
+          <span>חזור להתחלה</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playSelectSound() {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, now);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.08);
+    }
+
+    function playosionSound() {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(220, now);
+      osc.frequency.exponentialRampToValueAtTime(70, now + 0.35);
+      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.35);
+    }
+
+    function playMultipleMoveSoundsAndClear(rowIdx, colIndices, callback) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
+      colIndices.forEach((colIdx, i) => {
+        setTimeout(() => {
+          const btnElem = document.getElementById(`star-btn-${rowIdx}-${colIdx}`);
+          if (btnElem) {
+            btnElem.classList.add('star-exploding');
+          }
+          playosionSound();
+
+          setTimeout(() => {
+            gameState.board[rowIdx][colIdx] = false;
+            renderBoard();
+          }, 180);
+
+          if (i === colIndices.length - 1) {
+            setTimeout(() => {
+              if (callback) callback();
+            }, 350);
+          }
+        }, i * 350);
+      });
+    }
+
+    function playVictorySound() {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const now = audioCtx.currentTime;
+
+      // מנגינה מקוצרת ומהירה פי 2 (הוכפלה לרוץ ברצף פעמיים)
+      const baseNotes = [
+        { freq: 523.25, time: 0.0, duration: 0.18 },
+        { freq: 659.25, time: 0.12, duration: 0.18 },
+        { freq: 783.99, time: 0.24, duration: 0.18 },
+        { freq: 1046.50, time: 0.36, duration: 0.28 },
+        { freq: 880.00, time: 0.65, duration: 0.18 },
+        { freq: 1046.50, time: 0.80, duration: 0.4 }
+      ];
+
+      // רצף כפול - רץ פעם אחת ומיד שוב פעם שנייה ברצף
+      [0, 1.25].forEach(offset => {
+        baseNotes.forEach(note => {
+          const startTime = now + note.time + offset;
+          const endTime = startTime + note.duration;
+
+          const osc1 = audioCtx.createOscillator();
+          const gain1 = audioCtx.createGain();
+          osc1.type = 'triangle';
+          osc1.frequency.value = note.freq;
+          gain1.gain.setValueAtTime(0.25, startTime);
+          gain1.gain.exponentialRampToValueAtTime(0.001, endTime);
+          osc1.connect(gain1);
+          gain1.connect(audioCtx.destination);
+          osc1.start(startTime);
+          osc1.stop(endTime);
+
+          const osc2 = audioCtx.createOscillator();
+          const gain2 = audioCtx.createGain();
+          osc2.type = 'sine';
+          osc2.frequency.value = note.freq * 1.5;
+          gain2.gain.setValueAtTime(0.12, startTime);
+          gain2.gain.exponentialRampToValueAtTime(0.001, endTime);
+          osc2.connect(gain2);
+          gain2.connect(audioCtx.destination);
+          osc2.start(startTime);
+          osc2.stop(endTime);
+        });
+      });
+    }
+
+    function playDefeatSound() {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const now = audioCtx.currentTime;
+      const notes = [300, 260, 220, 180];
+      notes.forEach((freq, idx) => {
+        const startTime = now + idx * 0.2;
+        const endTime = startTime + 0.35;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.15, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, endTime);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(startTime);
+        osc.stop(endTime);
+      });
+    }
+
+    (function initSpaceBg() {
+      const canvas = document.getElementById('space-bg-canvas');
+      const ctx = canvas.getContext('2d');
+      let width = 0, height = 0;
+
+      function resizeCanvas() {
+        const dpr = window.devicePixelRatio || 1;
+        width = window.innerWidth; height = window.innerHeight;
+        canvas.width = width * dpr; canvas.height = height * dpr;
+        canvas.style.width = width + 'px'; canvas.style.height = height + 'px';
+        ctx.resetTransform(); ctx.scale(dpr, dpr);
+      }
+      window.addEventListener('resize', resizeCanvas); resizeCanvas();
+
+      const stars = [];
+      for (let i = 0; i < 200; i++) {
+        stars.push({ x: Math.random() * width, y: Math.random() * height, radius: Math.random() * 1.5 + 0.5, alpha: Math.random(), speed: Math.random() * 0.02 + 0.005 });
+      }
+
+      function renderFrame() {
+        ctx.fillStyle = '#040712'; ctx.fillRect(0, 0, width, height);
+        stars.forEach(s => {
+          s.alpha += s.speed;
+          if (s.alpha > 1 || s.alpha < 0.2) s.speed = -s.speed;
+          ctx.beginPath(); ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255, 255, 255, ${Math.abs(s.alpha)})`; ctx.fill();
+        });
+        requestAnimationFrame(renderFrame);
+      }
+      renderFrame();
+    })();
+
+    let setupGameMode = 'ai';
+    let setupRows = 5;
+    let setupAiDiffLevel = 1;
+    let setupStarterPlayer = 1;
+
+    let gameState = {
+      gameMode: 'ai',
+      aiDifficultyLevel: 1,
+      player1Name: "שחקן 1",
+      player2Name: "מחשב",
+      numRows: 5,
+      board: [],
+      currentPlayer: 1,
+      starterPlayer: 1,
+      scores: { 1: 0, 2: 0 },
+      selectedRow: null,
+      selectedIndices: [],
+      isGameOverHandled: false
+    };
+
+    function goToStep(stepNumber) {
+      document.getElementById('victory-modal').classList.add('hidden');
+      document.getElementById('setup-view-step1').classList.add('hidden');
+      document.getElementById('setup-view-step2').classList.add('hidden');
+      document.getElementById('setup-view-step3').classList.add('hidden');
+      document.getElementById('setup-view-step4').classList.add('hidden');
+      document.getElementById(`setup-view-step${stepNumber}`).classList.remove('hidden');
+      if (stepNumber === 4) renderPyramidPreview(setupRows);
+    }
+
+    function selectGameMode(mode) {
+      setupGameMode = mode;
+      const p2Box = document.getElementById('p2-name-box');
+      const starterLabel2 = document.getElementById('starter-label-2');
+      const starterIcon2 = document.getElementById('starter-icon-2');
+
+      if (mode === 'pvp') {
+        p2Box.classList.remove('hidden');
+        starterLabel2.innerText = "שחקן 2";
+        starterIcon2.innerText = "person_outline";
+        goToStep(3);
+      } else {
+        p2Box.classList.add('hidden');
+        starterLabel2.innerText = "מחשב";
+        starterIcon2.innerText = "smart_toy";
+        goToStep(2);
+      }
+    }
+
+    function goBackFromStep3() {
+      if (setupGameMode === 'ai') goToStep(2);
+      else goToStep(1);
+    }
+
+    function setAiDiff(level) {
+      setupAiDiffLevel = level;
+      for (let l = 1; l <= 5; l++) {
+        const btn = document.getElementById(`diff-btn-${l}`);
+        btn.className = (l === level)
+          ? "w-full h-10 rounded-xl bg-primary-container text-on-primary border border-primary font-bold text-xs shadow-md"
+          : "w-full h-10 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10";
+      }
+    }
+
+    function setStarterPlayer(num) {
+      setupStarterPlayer = num;
+      document.getElementById('starter-btn-1').className = (num === 1)
+        ? "flex-1 h-11 rounded-xl bg-primary-container text-on-primary border border-primary font-bold text-xs shadow-md flex items-center justify-center gap-1.5"
+        : "flex-1 h-11 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10 flex items-center justify-center gap-1.5";
+      document.getElementById('starter-btn-2').className = (num === 2)
+        ? "flex-1 h-11 rounded-xl bg-primary-container text-on-primary border border-primary font-bold text-xs shadow-md flex items-center justify-center gap-1.5"
+        : "flex-1 h-11 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10 flex items-center justify-center gap-1.5";
+    }
+
+    function renderPyramidPreview(count) {
+      const container = document.getElementById('pyramid-preview-container');
+      container.innerHTML = '';
+      for (let r = 1; r <= count; r++) {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = "flex items-center justify-center gap-1.5";
+        for (let c = 0; c < r; c++) {
+          const star = document.createElement('span');
+          star.className = "material-symbols-outlined text-primary text-[18px]";
+          star.style.fontVariationSettings = "'FILL' 1";
+          star.innerText = "star";
+          rowDiv.appendChild(star);
+        }
+        container.appendChild(rowDiv);
+      }
+    }
+
+    function selectRows(count) {
+      setupRows = count;
+      for (let i = 2; i <= 6; i++) {
+        const btn = document.getElementById(`row-btn-${i}`);
+        btn.className = (i === count)
+          ? "row-sel-btn flex-1 h-12 rounded-xl bg-primary-container text-on-primary border border-primary font-bold text-base shadow-md"
+          : "row-sel-btn flex-1 h-12 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-base hover:bg-white/10";
+      }
+      renderPyramidPreview(count);
+    }
+
+    function applySetupAndStart() {
+      gameState.gameMode = setupGameMode;
+      gameState.aiDifficultyLevel = setupAiDiffLevel;
+      gameState.player1Name = document.getElementById('setup-p1-name').value.trim() || "שחקן 1";
+      gameState.player2Name = gameState.gameMode === 'ai' ? "מחשב" : (document.getElementById('setup-p2-name').value.trim() || "שחקן 2");
+      gameState.numRows = setupRows;
+      gameState.starterPlayer = setupStarterPlayer;
+
+      document.getElementById('setup-view-step4').classList.add('hidden');
+      resetCurrentRound();
+    }
+
+    function resetCurrentRound() {
+      document.getElementById('victory-modal').classList.add('hidden');
+      gameState.isGameOverHandled = false;
+      gameState.board = Array.from({ length: gameState.numRows }, (_, i) => new Array(i + 1).fill(true));
+      gameState.currentPlayer = gameState.starterPlayer;
+      gameState.selectedRow = null;
+      gameState.selectedIndices = [];
+      document.getElementById('commit-btn').disabled = false;
+      document.getElementById('commit-btn').classList.remove('opacity-50', 'cursor-not-allowed');
+      updateHeaderUI();
+      renderBoard();
+      if (gameState.currentPlayer === 2 && gameState.gameMode === 'ai') handleAiTurn();
+    }
+
+    function closeVictoryModalAndReset() {
+      resetCurrentRound();
+    }
+
+    function goToStartFromModal() {
+      document.getElementById('victory-modal').classList.add('hidden');
+      goToStep(1);
+    }
+
+    function updateHeaderUI() {
+      document.getElementById('p1-display-label').innerText = gameState.player1Name;
+      document.getElementById('p2-display-label').innerText = gameState.player2Name;
+      document.getElementById('p2-icon-header').innerText = gameState.gameMode === 'ai' ? "smart_toy" : "person_outline";
+      document.getElementById('score-p1-num').innerText = gameState.scores[1];
+      document.getElementById('score-p2-num').innerText = gameState.scores[2];
+
+      if (!gameState.isGameOverHandled) {
+        const curName = gameState.currentPlayer === 1 ? gameState.player1Name : gameState.player2Name;
+        document.getElementById('turn-text').innerText = `${curName} — זה התור שלך!`;
+      }
+    }
+
+    function checkWinnerAndHandle() {
+      const remainingStars = gameState.board.flat().filter(Boolean).length;
+      if (remainingStars === 0 && !gameState.isGameOverHandled) {
+        gameState.isGameOverHandled = true;
+        const winnerNum = gameState.currentPlayer === 1 ? 2 : 1;
+        gameState.scores[winnerNum]++;
+        gameState.currentPlayer = winnerNum;
+        const winnerName = winnerNum === 1 ? gameState.player1Name : gameState.player2Name;
+
+        document.getElementById('turn-text').innerText = `🎉 ${winnerName} ניצח/ה!`;
+        updateHeaderUI();
+
+        document.getElementById('modal-winner-title').innerText = `${winnerName} ניצח/ה!`;
+        document.getElementById('modal-p1-name').innerText = gameState.player1Name;
+        document.getElementById('modal-p2-name').innerText = gameState.player2Name;
+        document.getElementById('modal-p1-score').innerText = gameState.scores[1];
+        document.getElementById('modal-p2-score').innerText = gameState.scores[2];
+        document.getElementById('victory-modal').classList.remove('hidden');
+
+        const commitBtn = document.getElementById('commit-btn');
+        commitBtn.disabled = true;
+        commitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+        if (gameState.gameMode === 'ai' && winnerNum === 2) {
+          playDefeatSound();
+        } else {
+          playVictorySound();
+        }
+      }
+    }
+
+    function renderBoard() {
+      const container = document.getElementById('board-container');
+      container.innerHTML = '';
+      const remainingStars = gameState.board.flat().filter(Boolean).length;
+      const isGameOver = remainingStars === 0;
+
+      gameState.board.forEach((row, rowIndex) => {
+        const isRowActiveSelection = gameState.selectedRow === rowIndex;
+        const rowBox = document.createElement('div');
+        rowBox.className = "inline-flex items-center justify-center px-3.5 py-1.5 rounded-xl bg-[#171c2b] border border-white/10";
+        const starsContainer = document.createElement('div');
+        starsContainer.className = "flex justify-center items-center gap-2";
+
+        row.forEach((active, colIndex) => {
+          const isSelected = isRowActiveSelection && gameState.selectedIndices.includes(colIndex);
+          if (!active) {
+            const emptyStar = document.createElement('div');
+            emptyStar.className = "w-9 h-9 flex items-center justify-center opacity-20";
+            emptyStar.innerHTML = `<span class="material-symbols-outlined text-[18px] text-outline">close</span>`;
+            starsContainer.appendChild(emptyStar);
+          } else {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.id = `star-btn-${rowIndex}-${colIndex}`;
+
+            if (isGameOver) {
+              btn.className = "w-11 h-11 rounded-full flex items-center justify-center shadow-lg victory-red-blink-slow transition-transform cursor-default";
+              btn.innerHTML = `<span class="material-symbols-outlined text-[26px]" style="font-variation-settings: 'FILL' 1;">star</span>`;
+            } else if (isSelected) {
+              btn.onclick = () => { playSelectSound(); toggleStar(rowIndex, colIndex); };
+              btn.className = "w-9 h-9 rounded-full bg-pink-500/30 text-pink-300 border border-pink-400/60 flex items-center justify-center shadow scale-105 transition-all";
+              btn.innerHTML = `<span class="material-symbols-outlined text-[20px] font-bold">close</span>`;
+            } else {
+              btn.onclick = () => { playSelectSound(); toggleStar(rowIndex, colIndex); };
+              btn.className = "w-9 h-9 rounded-full bg-white/10 flex items-center justify-center shadow hover:bg-white/20 transition-all border border-white/10";
+              btn.innerHTML = `<span class="material-symbols-outlined text-[22px] text-primary" style="font-variation-settings: 'FILL' 1;">star</span>`;
+            }
+            if (gameState.currentPlayer === 2 && gameState.gameMode === 'ai' || isGameOver) btn.onclick = null;
+            starsContainer.appendChild(btn);
+          }
+        });
+        rowBox.appendChild(starsContainer);
+        container.appendChild(rowBox);
+      });
+    }
+
+    function toggleStar(row, col) {
+      if (gameState.currentPlayer === 2 && gameState.gameMode === 'ai' || gameState.isGameOverHandled) return;
+      if (gameState.selectedRow !== null && gameState.selectedRow !== row) gameState.selectedIndices = [];
+      gameState.selectedRow = row;
+      const indexInSelected = gameState.selectedIndices.indexOf(col);
+      if (indexInSelected > -1) {
+        gameState.selectedIndices.splice(indexInSelected, 1);
+        if (gameState.selectedIndices.length === 0) gameState.selectedRow = null;
+      } else {
+        gameState.selectedIndices.push(col);
+        gameState.selectedIndices.sort((a, b) => a - b);
+      }
+      renderBoard();
+    }
+
+    function commitMove() {
+      if ((gameState.currentPlayer === 2 && gameState.gameMode === 'ai') || gameState.isGameOverHandled) return;
+      if (gameState.selectedIndices.length === 0) return;
+
+      const rIdx = gameState.selectedRow;
+      const cIndices = [...gameState.selectedIndices];
+
+      gameState.selectedRow = null;
+      gameState.selectedIndices = [];
+
+      playMultipleMoveSoundsAndClear(rIdx, cIndices, () => {
+        checkWinnerAndHandle();
+        if (!gameState.isGameOverHandled) {
+          gameState.currentPlayer = gameState.currentPlayer === 1 ? 2 : 1;
+          updateHeaderUI();
+          renderBoard();
+          if (gameState.currentPlayer === 2 && gameState.gameMode === 'ai') handleAiTurn();
+        }
+      });
+    }
+
+    function handleAiTurn() {
+      setTimeout(() => {
+        if (gameState.isGameOverHandled) return;
+        const validMoves = [];
+        gameState.board.forEach((row, rIdx) => {
+          row.forEach((act, cIdx) => {
+            if (act) validMoves.push({ row: rIdx, col: cIdx });
+          });
+        });
+        if (validMoves.length > 0) {
+          const move = validMoves[Math.floor(Math.random() * validMoves.length)];
+          playMultipleMoveSoundsAndClear(move.row, [move.col], () => {
+            checkWinnerAndHandle();
+            if (!gameState.isGameOverHandled) {
+              gameState.currentPlayer = 1;
+              updateHeaderUI();
+              renderBoard();
+            }
+          });
+        }
+      }, 700);
+    }
+
+    renderPyramidPreview(5);
+    resetCurrentRound();
+
+    // Install as an app / work offline (only over https, e.g. GitHub Pages)
+    if ('serviceWorker' in navigator && location.protocol === 'https:') {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
