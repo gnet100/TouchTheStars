@@ -441,9 +441,11 @@
 
     function playMultipleMoveSoundsAndClear(rowIdx, colIndices, callback) {
       if (audioCtx.state === 'suspended') audioCtx.resume();
+      const round = gameState.roundId; // אם הסיבוב מתאפס באמצע, האנימציה נעצרת ולא נוגעת בלוח החדש
 
       colIndices.forEach((colIdx, i) => {
         setTimeout(() => {
+          if (round !== gameState.roundId) return;
           const btnElem = document.getElementById(`star-btn-${rowIdx}-${colIdx}`);
           if (btnElem) {
             btnElem.classList.add('star-exploding');
@@ -451,12 +453,14 @@
           playosionSound();
 
           setTimeout(() => {
+            if (round !== gameState.roundId) return;
             gameState.board[rowIdx][colIdx] = false;
             renderBoard();
           }, 180);
 
           if (i === colIndices.length - 1) {
             setTimeout(() => {
+              if (round !== gameState.roundId) return;
               if (callback) callback();
             }, 350);
           }
@@ -578,11 +582,15 @@
       scores: { 1: 0, 2: 0 },
       selectedRow: null,
       selectedIndices: [],
-      isGameOverHandled: false
+      isGameOverHandled: false,
+      roundId: 0,   // מתחלף בכל סיבוב חדש, כדי שטיימרים מסיבוב קודם לא ישנו את הלוח
+      busy: false   // מהלך באמצע אנימציה או מחשב חושב: חוסם לחיצות
     };
 
     function goToStep(stepNumber) {
       clearTimeout(endTimer);
+      gameState.roundId++;   // עוצר מהלך מחשב או אנימציה שעדיין רצים
+      gameState.busy = false;
       // הזירה מוסתרת כל עוד אחד ממסכי ההגדרות פתוח (נשאר רק רקע הכוכבים)
       document.getElementById('tab-arena').classList.add('invisible');
       document.getElementById('victory-modal').classList.add('hidden');
@@ -682,6 +690,8 @@
 
     function resetCurrentRound() {
       clearTimeout(endTimer);
+      gameState.roundId++;
+      gameState.busy = false;
       document.getElementById('victory-modal').classList.add('hidden');
       gameState.isGameOverHandled = false;
       gameState.board = Array.from({ length: gameState.numRows }, (_, i) => new Array(i + 1).fill(true));
@@ -815,7 +825,7 @@
     }
 
     function toggleStar(row, col) {
-      if (gameState.currentPlayer === 2 && gameState.gameMode === 'ai' || gameState.isGameOverHandled) return;
+      if (gameState.busy || gameState.currentPlayer === 2 && gameState.gameMode === 'ai' || gameState.isGameOverHandled) return;
       if (gameState.selectedRow !== null && gameState.selectedRow !== row) gameState.selectedIndices = [];
       gameState.selectedRow = row;
       const indexInSelected = gameState.selectedIndices.indexOf(col);
@@ -830,16 +840,17 @@
     }
 
     function commitMove() {
-      if ((gameState.currentPlayer === 2 && gameState.gameMode === 'ai') || gameState.isGameOverHandled) return;
+      if (gameState.busy || (gameState.currentPlayer === 2 && gameState.gameMode === 'ai') || gameState.isGameOverHandled) return;
       if (gameState.selectedIndices.length === 0) return;
 
       const rIdx = gameState.selectedRow;
       const cIndices = [...gameState.selectedIndices];
-
-      gameState.selectedRow = null;
-      gameState.selectedIndices = [];
+      gameState.busy = true; // חוסם בחירה ולחיצה נוספת עד שהמהלך מסתיים
 
       playMultipleMoveSoundsAndClear(rIdx, cIndices, () => {
+        gameState.busy = false;
+        gameState.selectedRow = null;
+        gameState.selectedIndices = [];
         checkWinnerAndHandle();
         if (!gameState.isGameOverHandled) {
           gameState.currentPlayer = gameState.currentPlayer === 1 ? 2 : 1;
@@ -850,18 +861,170 @@
       });
     }
 
-    function handleAiTurn() {
-      setTimeout(() => {
-        if (gameState.isGameOverHandled) return;
-        const validMoves = [];
-        gameState.board.forEach((row, rIdx) => {
-          row.forEach((act, cIdx) => {
-            if (act) validMoves.push({ row: rIdx, col: cIdx });
+    // ================= מנוע המחשב =================
+    // המשחק הוא "נים מיזר": מי שנשאר עם הכוכבית האחרונה מפסיד. אפשר לפתור אותו במדויק,
+    // ולכן המנוע יודע לכל לוח אם השחקן שבתור מנצח במשחק מושלם, ומהם המהלכים המנצחים.
+    // contiguous: false = מותר לקחת כל כוכביות מאותה שורה (החוק שהמשחק אוכף כרגע)
+    // contiguous: true  = רק רצף של כוכביות זוהרות צמודות (חוק הרצף)
+    const RULES = { contiguous: false };
+
+    // winIn1    - הסיכוי שהמחשב ינצל ניצחון מיידי (להשאיר ליריב כוכבית אחת)
+    // safe      - לא משאיר ליריב ניצחון מיידי
+    // pBest     - הסיכוי לבחור במהלך המושלם בכל תור
+    // perfectAt - כשנשארו כך או פחות כוכביות, המחשב משחק בלי טעויות
+    // tricky    - כשאין מהלך מנצח, בוחר את המהלך שהכי קשה ליריב למצוא נגדו תשובה נכונה
+    const AI_LEVELS = {
+      1: { winIn1: 0.5, safe: false, pBest: 0,    perfectAt: 0 },                      // מתחיל
+      2: { winIn1: 1,   safe: true,  pBest: 0,    perfectAt: 0 },                      // חובבן
+      3: { winIn1: 1,   safe: true,  pBest: 0.3,  perfectAt: 5 },                      // בינוני
+      4: { winIn1: 1,   safe: true,  pBest: 0.6,  perfectAt: 6 },                      // מתקדם
+      5: { winIn1: 1,   safe: true,  pBest: 1,    perfectAt: Infinity, tricky: true }  // אלוף
+    };
+
+    const pickRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
+    const colRange = (from, to) => Array.from({ length: to - from + 1 }, (_, i) => from + i);
+    const countStars = (board) => board.reduce((n, row) => n + row.filter(Boolean).length, 0);
+
+    // הלוח כקבוצות בלתי תלויות: כמות הכוכביות בכל שורה, או אורך כל רצף בחוק הרצף
+    function starGroups(board) {
+      const groups = [];
+      board.forEach(row => {
+        if (RULES.contiguous) {
+          let run = 0;
+          row.forEach(lit => {
+            if (lit) run++;
+            else { if (run) groups.push(run); run = 0; }
           });
-        });
-        if (validMoves.length > 0) {
-          const move = validMoves[Math.floor(Math.random() * validMoves.length)];
-          playMultipleMoveSoundsAndClear(move.row, [move.col], () => {
+          if (run) groups.push(run);
+        } else {
+          const n = row.filter(Boolean).length;
+          if (n) groups.push(n);
+        }
+      });
+      return groups.sort((a, b) => a - b);
+    }
+
+    // האם השחקן שבתור מנצח במשחק מושלם? לוח ריק = היריב לקח את האחרונה = ניצחון
+    const winMemo = new Map();
+    function isWinningGroups(groups) {
+      const key = (RULES.contiguous ? 'c:' : 'n:') + groups.join(',');
+      if (winMemo.has(key)) return winMemo.get(key);
+      let win = groups.length === 0;
+      for (let i = 0; i < groups.length && !win; i++) {
+        const g = groups[i];
+        if (i > 0 && groups[i - 1] === g) continue; // קבוצה באותו גודל כבר נבדקה
+        const rest = groups.slice(0, i).concat(groups.slice(i + 1));
+        for (let take = 1; take <= g && !win; take++) {
+          const maxLeft = RULES.contiguous ? Math.floor((g - take) / 2) : 0;
+          for (let left = 0; left <= maxLeft && !win; left++) {
+            const next = rest.slice();
+            if (RULES.contiguous) {
+              const right = g - take - left;
+              if (left) next.push(left);
+              if (right) next.push(right);
+            } else if (g - take) {
+              next.push(g - take);
+            }
+            if (!isWinningGroups(next.sort((a, b) => a - b))) win = true;
+          }
+        }
+      }
+      winMemo.set(key, win);
+      return win;
+    }
+    const boardIsWin = (board) => isWinningGroups(starGroups(board));
+
+    // בחוק הרגיל לא משנה אילו כוכביות לוקחים מהשורה; מעדיפים צמודות כדי שייראה טבעי
+    function pickNimCols(row, lit, k) {
+      const windows = [];
+      for (let i = 0; i + k <= row.length; i++) {
+        if (row.slice(i, i + k).every(Boolean)) windows.push(colRange(i, i + k - 1));
+      }
+      if (windows.length) return pickRandom(windows);
+      const s = Math.floor(Math.random() * (lit.length - k + 1));
+      return lit.slice(s, s + k);
+    }
+
+    // כל המהלכים החוקיים, עם הלוח שנוצר אחרי כל מהלך ומספר הכוכביות שנשארו
+    function listMoves(board) {
+      const moves = [];
+      board.forEach((row, r) => {
+        if (RULES.contiguous) {
+          for (let i = 0; i < row.length; i++) {
+            for (let j = i; j < row.length && row[j]; j++) moves.push({ row: r, cols: colRange(i, j) });
+          }
+        } else {
+          const lit = [];
+          row.forEach((v, c) => { if (v) lit.push(c); });
+          for (let k = 1; k <= lit.length; k++) moves.push({ row: r, cols: pickNimCols(row, lit, k) });
+        }
+      });
+      moves.forEach(m => {
+        m.next = board.map(row => row.slice());
+        m.cols.forEach(c => { m.next[m.row][c] = false; });
+        m.left = countStars(m.next);
+      });
+      return moves;
+    }
+
+    // עמדה מפסידה: המהלך שאחריו ליריב יש הכי מעט תשובות נכונות (בשוויון, לוקחים פחות כוכביות)
+    function trickiestMove(moves) {
+      let bestScore = Infinity, pool = [];
+      moves.forEach(m => {
+        const replies = listMoves(m.next);
+        const good = replies.filter(r => !boardIsWin(r.next)).length;
+        const score = good / replies.length + m.cols.length * 0.0001;
+        if (score < bestScore - 1e-9) { bestScore = score; pool = [m]; }
+        else if (score < bestScore + 1e-9) pool.push(m);
+      });
+      return pickRandom(pool);
+    }
+
+    function chooseAiMove(board, level) {
+      const cfg = AI_LEVELS[level] || AI_LEVELS[1];
+      const all = listMoves(board);
+      if (!all.length) return null;
+      const moves = all.filter(m => m.left > 0); // לא לוקחים מרצון את הכוכבית האחרונה
+      if (!moves.length) return pickRandom(all);
+
+      // 1. ניצחון מיידי: להשאיר ליריב כוכבית אחת
+      const winNow = moves.filter(m => m.left === 1);
+      if (winNow.length && Math.random() < cfg.winIn1) return pickRandom(winNow);
+
+      // 2. מהלך מושלם: משאיר ליריב עמדה מפסידה
+      const best = moves.filter(m => !boardIsWin(m.next));
+      if (best.length && (countStars(board) <= cfg.perfectAt || Math.random() < cfg.pBest)) return pickRandom(best);
+
+      // 3. אלוף בעמדה מפסידה: מקשה על היריב ככל האפשר
+      if (cfg.tricky && !best.length) return trickiestMove(moves);
+
+      // 4. מהלך אקראי; מרמה 2 ומעלה בלי להשאיר ליריב ניצחון מיידי
+      let pool = moves;
+      if (cfg.safe) {
+        const safe = moves.filter(m => !listMoves(m.next).some(r => r.left === 1));
+        if (safe.length) pool = safe;
+      }
+      return pickRandom(pool);
+    }
+
+    function handleAiTurn() {
+      const round = gameState.roundId;
+      gameState.busy = true;
+      setTimeout(() => {
+        if (round !== gameState.roundId || gameState.isGameOverHandled) return;
+        const move = chooseAiMove(gameState.board, gameState.aiDifficultyLevel);
+        if (!move) { gameState.busy = false; return; }
+        // מציגים לרגע אילו כוכביות המחשב בחר, ואז הן מתפוצצות
+        playSelectSound();
+        gameState.selectedRow = move.row;
+        gameState.selectedIndices = move.cols.slice();
+        renderBoard();
+        setTimeout(() => {
+          if (round !== gameState.roundId) return;
+          playMultipleMoveSoundsAndClear(move.row, move.cols, () => {
+            gameState.busy = false;
+            gameState.selectedRow = null;
+            gameState.selectedIndices = [];
             checkWinnerAndHandle();
             if (!gameState.isGameOverHandled) {
               gameState.currentPlayer = 1;
@@ -869,7 +1032,7 @@
               renderBoard();
             }
           });
-        }
+        }, 600);
       }, 700);
     }
 
