@@ -163,7 +163,7 @@
           </div>
         </button>
       </div>
-      <button type="button" onclick="goToStep(5)" class="self-start mt-6 mb-4 px-1 py-1 flex items-center gap-1.5 text-sm font-bold text-primary/90 hover:text-primary hover:scale-110 active:scale-95 transition-all">
+      <button type="button" onclick="goToStep(5)" class="self-end mt-6 mb-4 px-1 py-1 flex items-center gap-1.5 text-sm font-bold text-primary/90 hover:text-primary hover:scale-110 active:scale-95 transition-all">
         <span>הוראות</span>
         <span class="material-symbols-outlined text-[18px]">menu_book</span>
       </button>
@@ -204,10 +204,54 @@
         </article>
       </div>
 
-      <button onclick="goToStep(1)" class="w-full h-11 rounded-xl bg-primary text-on-primary font-headline-md flex items-center justify-center gap-2 shadow-xl active:scale-95 transition-all font-bold text-base">
-        <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
-        <span>חזור</span>
-      </button>
+      <div class="w-full flex gap-2">
+        <button onclick="goToStep(6)" class="flex-1 h-11 rounded-xl bg-primary text-on-primary flex items-center justify-center gap-2 shadow-xl active:scale-95 hover:scale-105 transition-all font-bold text-base">
+          <span class="material-symbols-outlined text-[20px]">play_circle</span>
+          <span>הדגמה</span>
+        </button>
+        <button onclick="goToStep(1)" class="flex-1 h-11 rounded-xl bg-[#171c2b] text-on-surface border border-white/20 flex items-center justify-center gap-2 active:scale-95 hover:scale-105 transition-all font-bold text-base">
+          <span class="material-symbols-outlined text-[20px] text-tertiary">arrow_forward</span>
+          <span>חזור</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- מסך 6: הדגמה של משחק לדוגמה -->
+  <div id="setup-view-step6" class="fixed inset-0 z-50 bg-black/70 flex flex-col items-center justify-center p-margin-mobile hidden">
+    <div class="w-[340px] h-[560px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/50 justify-between">
+      <div class="w-full flex items-center justify-between border-b border-white/10 pb-2">
+        <button type="button" onclick="goToStep(5)" class="text-xs text-primary font-bold flex items-center gap-1 hover:scale-110 transition-transform">
+          <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+          <span>חזור</span>
+        </button>
+        <h2 class="font-game-title text-lg font-black text-primary text-center tracking-wider">הדגמה</h2>
+        <div class="w-12"></div>
+      </div>
+
+      <div class="w-full flex flex-col gap-2 mt-3">
+        <div class="w-full flex items-center justify-between">
+          <span id="demo-player" class="text-[11px] font-black px-2 py-0.5 rounded-full border">פתיחה</span>
+          <span id="demo-counter" class="text-[11px] font-bold text-on-surface-variant"></span>
+        </div>
+        <p id="demo-text" class="w-full min-h-[3.25rem] text-sm font-bold text-on-surface leading-relaxed text-right"></p>
+      </div>
+
+      <div id="demo-board" class="w-full flex flex-col items-center gap-1.5 py-3 my-auto rounded-2xl bg-black/20 border border-white/10"></div>
+
+      <div class="w-full flex items-center justify-between gap-2 mt-3">
+        <button type="button" onclick="demoStep(-1)" class="flex-1 h-11 rounded-xl bg-[#171c2b] border border-white/20 flex items-center justify-center gap-1 font-bold text-sm active:scale-95 hover:scale-105 transition-all">
+          <span class="material-symbols-outlined text-[18px] text-tertiary">arrow_forward</span>
+          <span>הקודם</span>
+        </button>
+        <button type="button" onclick="demoTogglePlay()" title="עצור / המשך" aria-label="עצור / המשך" class="w-14 h-11 shrink-0 rounded-xl bg-primary text-on-primary flex items-center justify-center shadow-md active:scale-95 hover:scale-105 transition-all">
+          <span id="demo-play-icon" class="material-symbols-outlined text-[24px]">pause</span>
+        </button>
+        <button type="button" onclick="demoStep(1)" class="flex-1 h-11 rounded-xl bg-[#171c2b] border border-white/20 flex items-center justify-center gap-1 font-bold text-sm active:scale-95 hover:scale-105 transition-all">
+          <span>הבא</span>
+          <span class="material-symbols-outlined text-[18px] text-tertiary">arrow_back</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -631,13 +675,11 @@
       // הזירה מוסתרת כל עוד אחד ממסכי ההגדרות פתוח (נשאר רק רקע הכוכבים)
       document.getElementById('tab-arena').classList.add('invisible');
       document.getElementById('victory-modal').classList.add('hidden');
-      document.getElementById('setup-view-step1').classList.add('hidden');
-      document.getElementById('setup-view-step2').classList.add('hidden');
-      document.getElementById('setup-view-step3').classList.add('hidden');
-      document.getElementById('setup-view-step4').classList.add('hidden');
-      document.getElementById('setup-view-step5').classList.add('hidden');
+      demo.token++;          // יציאה מההדגמה עוצרת אותה
+      document.querySelectorAll('[id^="setup-view-step"]').forEach(el => el.classList.add('hidden'));
       document.getElementById(`setup-view-step${stepNumber}`).classList.remove('hidden');
       if (stepNumber === 4) renderPyramidPreview(setupRows);
+      if (stepNumber === 6) startDemo();
     }
 
     function selectGameMode(mode) {
@@ -1109,6 +1151,159 @@
           });
         }, 600);
       }, 700);
+    }
+
+    // ================= הדגמה =================
+    // משחק לדוגמה בפירמידה של 5 שורות, שמראה את סוגי המהלכים ואת סוף המשחק
+    const DEMO_STEPS = [
+      { text: 'בתחילת המשחק יש 5 שורות ו-15 כוכביות. שחקן 1 מתחיל.' },
+      { player: 1, row: 0, cols: [0], text: 'שחקן 1 לוקח כוכבית אחת.' },
+      { player: 2, row: 4, cols: [0, 1, 2], text: 'שחקן 2 לוקח 3 כוכביות צמודות מאותה שורה.' },
+      { player: 1, row: 3, cols: [1, 2], text: 'שחקן 1 לוקח 2 כוכביות מאמצע השורה. עכשיו השורה מפוצלת לשני חלקים.' },
+      { player: 2, row: 3, cols: [0, 3], illegal: true, text: 'אסור לקחת את שתי הכוכביות האלה יחד: כוכבית כבויה עוצרת את הרצף.' },
+      { player: 2, row: 2, cols: [0, 1, 2], text: 'שחקן 2 בוחר מהלך אחר ולוקח שורה שלמה.' },
+      { player: 1, row: 4, cols: [3, 4], text: 'שחקן 1 לוקח 2 כוכביות צמודות.' },
+      { player: 2, row: 3, cols: [0], text: 'שחקן 2 לוקח כוכבית אחת.' },
+      { player: 1, row: 1, cols: [0, 1], text: 'שחקן 1 לוקח שורה שלמה ומשאיר לשחקן 2 כוכבית אחת בלבד.' },
+      { end: true, text: 'הכוכבית האחרונה מהבהבת באדום: שחקן 2 נשאר איתה והפסיד. שחקן 1 ניצח!' }
+    ];
+    // token מתחלף בכל מעבר שלב או יציאה, וכך טיימרים ישנים לא ממשיכים לרוץ
+    const demo = { index: 0, playing: true, busy: false, token: 0 };
+
+    // הלוח לפני שלב מסוים: לוח מלא, בלי הכוכביות שהורדו במהלכים החוקיים שקדמו לו
+    function demoBoardBefore(index) {
+      const board = Array.from({ length: 5 }, (_, i) => new Array(i + 1).fill(true));
+      DEMO_STEPS.slice(0, index).forEach(s => {
+        if (s.cols && !s.illegal) s.cols.forEach(c => { board[s.row][c] = false; });
+      });
+      return board;
+    }
+
+    function renderDemoBoard(board, step, phase) {
+      const box = document.getElementById('demo-board');
+      box.innerHTML = '';
+      const starIcon = (size) => `<span class="material-symbols-outlined text-[${size}px]" style="font-variation-settings: 'FILL' 1;">star</span>`;
+      board.forEach((row, r) => {
+        const rowBox = document.createElement('div');
+        rowBox.className = 'inline-flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-xl bg-[#171c2b] border border-white/10';
+        row.forEach((lit, c) => {
+          const cell = document.createElement('div');
+          cell.id = `demo-star-${r}-${c}`;
+          const picked = phase === 'select' && step.row === r && step.cols.includes(c);
+          if (!lit) {
+            cell.className = 'w-8 h-8 flex items-center justify-center opacity-20';
+            cell.innerHTML = '<span class="material-symbols-outlined text-[16px] text-outline">close</span>';
+          } else if (phase === 'end') {
+            cell.className = 'w-8 h-8 rounded-full flex items-center justify-center shadow-lg last-star-blink-3';
+            cell.innerHTML = starIcon(20);
+          } else if (picked && step.illegal) {
+            cell.className = 'w-8 h-8 rounded-full bg-red-500/25 text-red-300 border-2 border-red-400/80 flex items-center justify-center scale-105';
+            cell.innerHTML = '<span class="material-symbols-outlined text-[18px] font-bold">block</span>';
+          } else if (picked) {
+            cell.className = 'w-8 h-8 rounded-full bg-pink-500/30 text-pink-300 border border-pink-400/60 flex items-center justify-center shadow scale-105';
+            cell.innerHTML = '<span class="material-symbols-outlined text-[18px] font-bold">close</span>';
+          } else {
+            cell.className = 'w-8 h-8 rounded-full bg-white/10 text-primary flex items-center justify-center shadow border border-white/10';
+            cell.innerHTML = starIcon(20);
+          }
+          rowBox.appendChild(cell);
+        });
+        box.appendChild(rowBox);
+      });
+    }
+
+    function updateDemoCaption(step, index) {
+      const pill = document.getElementById('demo-player');
+      pill.innerText = step.end ? 'סוף המשחק' : step.player ? `תור שחקן ${step.player}` : 'פתיחה';
+      pill.className = 'text-[11px] font-black px-2 py-0.5 rounded-full border ' + (
+        step.player === 1 ? 'text-primary border-primary/50 bg-primary/10'
+        : step.player === 2 ? 'text-secondary border-secondary/50 bg-secondary/10'
+        : 'text-amber-400 border-amber-400/50 bg-amber-400/10');
+      document.getElementById('demo-counter').innerText = `שלב ${index + 1} מתוך ${DEMO_STEPS.length}`;
+      document.getElementById('demo-text').innerText = step.text;
+    }
+
+    function updateDemoPlayButton() {
+      const atEnd = demo.index >= DEMO_STEPS.length - 1 && !demo.busy;
+      document.getElementById('demo-play-icon').innerText = demo.playing ? 'pause' : (atEnd ? 'replay' : 'play_arrow');
+    }
+
+    // מציג שלב אחד: מסמן את הכוכביות שנבחרו, ואז הן מתפוצצות. מהלך אסור מסומן באדום ולא מתבצע
+    function playDemoStep(index) {
+      const token = ++demo.token;
+      const later = (ms, fn) => setTimeout(() => { if (token === demo.token) fn(); }, ms);
+      const finish = (pauseMs) => {
+        demo.busy = false;
+        if (index >= DEMO_STEPS.length - 1) demo.playing = false;
+        updateDemoPlayButton();
+        if (demo.playing) later(pauseMs, () => { if (demo.playing) playDemoStep(index + 1); });
+      };
+      demo.index = index;
+      demo.busy = true;
+      const step = DEMO_STEPS[index];
+      const board = demoBoardBefore(index);
+      updateDemoCaption(step, index);
+      updateDemoPlayButton();
+
+      if (!step.cols) {                      // פתיחה או סוף המשחק
+        renderDemoBoard(board, step, step.end ? 'end' : 'idle');
+        finish(2600);
+        return;
+      }
+      renderDemoBoard(board, step, 'select');
+      if (step.illegal) {
+        playErrorSound();
+        later(2800, () => { renderDemoBoard(board, step, 'idle'); finish(600); });
+        return;
+      }
+      playSelectSound();
+      later(1300, () => {
+        step.cols.forEach((c, i) => later(i * 300, () => {
+          const el = document.getElementById(`demo-star-${step.row}-${c}`);
+          if (el) el.classList.add('star-exploding');
+          playosionSound();
+        }));
+        later(step.cols.length * 300 + 250, () => {
+          step.cols.forEach(c => { board[step.row][c] = false; });
+          renderDemoBoard(board, step, 'done');
+          finish(1500);
+        });
+      });
+    }
+
+    function startDemo() {
+      demo.playing = true;
+      playDemoStep(0);
+    }
+
+    function demoStep(delta) {
+      demo.playing = false;
+      playDemoStep(Math.min(DEMO_STEPS.length - 1, Math.max(0, demo.index + delta)));
+    }
+
+    function demoTogglePlay() {
+      if (demo.playing) { demo.playing = false; updateDemoPlayButton(); return; }
+      demo.playing = true;
+      updateDemoPlayButton();
+      if (demo.busy) return;                  // השלב הנוכחי עוד רץ, וההדגמה תמשיך ממנו לבד
+      playDemoStep(demo.index >= DEMO_STEPS.length - 1 ? 0 : demo.index + 1);
+    }
+
+    function playErrorSound() {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const now = audioCtx.currentTime;
+      [0, 0.16].forEach(offset => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'square';
+        osc.frequency.value = 160;
+        gain.gain.setValueAtTime(0.06, now + offset);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.12);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now + offset);
+        osc.stop(now + offset + 0.12);
+      });
     }
 
     renderPyramidPreview(5);
