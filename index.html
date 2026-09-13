@@ -42,6 +42,12 @@
     * { touch-action: manipulation; }
     html { -webkit-tap-highlight-color: transparent; }
 
+    /* רקע כהה כבר מהרגע הראשון, עוד לפני ש-Tailwind נטען, בלי הבהוב לבן בפתיחה */
+    html, body { background-color: #02040a; }
+
+    /* אייפון: לחיצה ארוכה על תמונה לא פותחת תפריט שמירה */
+    img { -webkit-touch-callout: none; }
+
     /* מסכים נמוכים: מצמצמים רווחים וכוכביות כדי שכל הלוח ייכנס. אם עדיין לא נכנס, הזירה נגללת */
     @media (max-height: 720px) {
       .arena-pt { padding-top: calc(4.5rem + env(safe-area-inset-top, 0px)); }
@@ -188,7 +194,7 @@
 
   <!-- מסך 5: הוראות -->
   <div id="setup-view-step5" class="fixed inset-0 z-50 bg-black/70 flex flex-col items-center justify-center p-margin-mobile hidden">
-    <div class="w-[340px] h-[560px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/50 justify-between">
+    <div class="w-[340px] h-[560px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/50 overflow-y-auto justify-between">
       <div class="w-full flex items-center justify-between border-b border-white/10 pb-2">
         <button type="button" onclick="goToStep(1)" class="text-xs text-primary font-bold flex items-center gap-1 hover:scale-110 transition-transform">
           <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
@@ -235,7 +241,7 @@
 
   <!-- מסך 6: הדגמה של משחק לדוגמה -->
   <div id="setup-view-step6" class="fixed inset-0 z-50 bg-black/70 flex flex-col items-center justify-center p-margin-mobile hidden">
-    <div class="w-[340px] h-[560px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/50 justify-between">
+    <div class="w-[340px] h-[560px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/50 overflow-y-auto justify-between">
       <div class="w-full flex items-center justify-between border-b border-white/10 pb-2">
         <button type="button" onclick="goToStep(5)" class="text-xs text-primary font-bold flex items-center gap-1 hover:scale-110 transition-transform">
           <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
@@ -318,7 +324,7 @@
             <span class="material-symbols-outlined text-[18px]">person</span>
             <span>שם שחקן 1:</span>
           </label>
-          <input id="setup-p1-name" type="text" value="שחקן 1" class="w-full h-11 px-3.5 rounded-xl bg-[#171c2b] border border-player1/60 text-on-surface focus:outline-none focus:border-player1 text-base font-bold"/>
+          <input id="setup-p1-name" type="text" maxlength="12" value="שחקן 1" class="w-full h-11 px-3.5 rounded-xl bg-[#171c2b] border border-player1/60 text-on-surface focus:outline-none focus:border-player1 text-base font-bold"/>
         </div>
 
         <div id="p2-name-box" class="flex flex-col gap-3 text-right hidden">
@@ -326,7 +332,7 @@
             <span class="material-symbols-outlined text-[18px]">person_outline</span>
             <span>שם שחקן 2:</span>
           </label>
-          <input id="setup-p2-name" type="text" value="שחקן 2" class="w-full h-11 px-3.5 rounded-xl bg-[#171c2b] border border-secondary/60 text-on-surface focus:outline-none focus:border-secondary text-base font-bold"/>
+          <input id="setup-p2-name" type="text" maxlength="12" value="שחקן 2" class="w-full h-11 px-3.5 rounded-xl bg-[#171c2b] border border-secondary/60 text-on-surface focus:outline-none focus:border-secondary text-base font-bold"/>
         </div>
 
         <!-- קו דק מפריד בין שמות השחקנים לבחירת המתחיל -->
@@ -395,7 +401,7 @@
           <!-- שחקן 1: כחול, נקודה בתחילת השורה. שחקן 2 או המחשב: ורוד, נקודה בסוף השורה -->
           <div id="active-turn-banner" class="w-[67.5%] flex items-center gap-[5px] py-[5px] px-6 rounded-xl border shadow-lg transition-colors bg-player1/15 border-player1/50">
             <span class="w-[11px] flex justify-center shrink-0"><span id="turn-dot-start" class="w-[9px] h-[9px] rounded-full dot-ping bg-player1"></span></span>
-            <span id="turn-text" class="flex-1 text-center text-base leading-[1.375rem] font-black tracking-wide text-player1">שחקן 1</span>
+            <span id="turn-text" class="flex-1 min-w-0 truncate text-center text-base leading-[1.375rem] font-black tracking-wide text-player1">שחקן 1</span>
             <span class="w-[11px] flex justify-center shrink-0"><span id="turn-dot-end" class="w-[9px] h-[9px] rounded-full dot-ping bg-secondary invisible"></span></span>
           </div>
 
@@ -449,7 +455,7 @@
 
   <!-- הודעת ניצחון מוקפצת (מודאל) -->
   <div id="victory-modal" class="fixed inset-0 z-50 bg-black/80 flex flex-col items-center justify-center p-margin-mobile hidden">
-    <div class="w-[340px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/60 text-center modal-animation space-y-3.5">
+    <div class="w-[340px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/60 text-center modal-animation space-y-3.5 max-h-full overflow-y-auto">
       <div class="w-16 h-16 rounded-full bg-amber-400/15 border-2 border-amber-400 flex items-center justify-center text-amber-400 shadow-[0_0_18px_rgba(251,191,36,0.55)] animate-bounce">
         <span class="material-symbols-outlined text-[36px]" style="font-variation-settings: 'FILL' 1;">trophy</span>
       </div>
@@ -492,23 +498,34 @@
   </div>
 
   <script>
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // הצליל הוא תוספת: אם אין בדפדפן Web Audio, או שהוא נכשל, המשחק ממשיך לעבוד בלי צליל
+    let audioCtx = null;
+    try {
+      const AudioCtor = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtor) audioCtx = new AudioCtor();
+    } catch (e) { audioCtx = null; }
 
     // כל הצלילים עוברים דרך masterGain: כיבוי הצליל משתיק מיד גם צליל שכבר מתנגן
-    const masterGain = audioCtx.createGain();
-    const speakers = audioCtx.destination;
-    masterGain.connect(speakers);
+    const masterGain = audioCtx ? audioCtx.createGain() : null;
+    if (masterGain) { const speakers = audioCtx.destination; masterGain.connect(speakers); }
+
+    // מוכן לנגן? מעיר את הצליל אם הדפדפן השהה אותו. בלי Web Audio מחזיר false
+    function soundReady() {
+      if (!audioCtx) return false;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return true;
+    }
 
     // בטלפונים הצליל נפתח רק אחרי נגיעה של המשתמש. פותחים אותו בכל נגיעה, כך שגם כשהמחשב מתחיל יש צליל
     function unlockAudio() {
-      if (audioCtx.state === 'running') return;
+      if (!audioCtx || audioCtx.state === 'running') return;
       const p = audioCtx.resume();
       if (p && p.catch) p.catch(() => {});
     }
     ['pointerdown', 'touchend', 'click'].forEach(ev => document.addEventListener(ev, unlockAudio, { passive: true }));
 
     function playSelectSound() {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
+      if (!soundReady()) return;
       const now = audioCtx.currentTime;
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
@@ -523,7 +540,7 @@
     }
 
     function playosionSound() {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
+      if (!soundReady()) return;
       const now = audioCtx.currentTime;
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
@@ -539,7 +556,7 @@
     }
 
     function playMultipleMoveSoundsAndClear(rowIdx, colIndices, callback) {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
+      soundReady();
       const round = gameState.roundId; // אם הסיבוב מתאפס באמצע, האנימציה נעצרת ולא נוגעת בלוח החדש
 
       colIndices.forEach((colIdx, i) => {
@@ -568,7 +585,7 @@
     }
 
     function playVictorySound() {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
+      if (!soundReady()) return;
       const now = audioCtx.currentTime;
 
       // מנגינה מקוצרת ומהירה פי 2 (הוכפלה לרוץ ברצף פעמיים)
@@ -613,7 +630,7 @@
     }
 
     function playDefeatSound() {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
+      if (!soundReady()) return;
       const now = audioCtx.currentTime;
       const notes = [300, 260, 220, 180];
       notes.forEach((freq, idx) => {
@@ -838,7 +855,8 @@
         'w-[67.5%] flex items-center gap-[5px] py-[5px] px-6 rounded-xl border shadow-lg transition-colors ' +
         (p1 ? 'bg-player1/15 border-player1/50' : 'bg-secondary-container/30 border-secondary/40');
       document.getElementById('turn-text').className =
-        'flex-1 text-center text-base leading-[1.375rem] font-black tracking-wide ' + (p1 ? 'text-player1' : 'text-secondary');
+        // תמיד שורה אחת: שם ארוך מקבל שלוש נקודות, כך שהשורה לא משנה גובה והלוח לא קופץ
+        'flex-1 min-w-0 truncate text-center text-base leading-[1.375rem] font-black tracking-wide ' + (p1 ? 'text-player1' : 'text-secondary');
       document.getElementById('turn-dot-start').classList.toggle('invisible', !(p1 && showDot));
       document.getElementById('turn-dot-end').classList.toggle('invisible', !(!p1 && showDot));
     }
@@ -859,21 +877,19 @@
       const winnerNum = remainingStars === 1
         ? gameState.currentPlayer
         : (gameState.currentPlayer === 1 ? 2 : 1);
-      const loserNum = winnerNum === 1 ? 2 : 1;
       const winnerName = winnerNum === 1 ? gameState.player1Name : gameState.player2Name;
-      const loserName = loserNum === 1 ? gameState.player1Name : gameState.player2Name;
       // למחשב ניסוח בזכר בלבד; לשחקנים ניסוח ניטרלי (ניצח/ה)
       const isComputer = (num) => gameState.gameMode === 'ai' && num === 2;
       const winText = isComputer(winnerNum) ? `${winnerName} ניצח!` : `${winnerName} ניצח/ה!`;
 
-      document.getElementById('turn-text').innerText = `הכוכבית האחרונה נשארה ל${loserName}!`;
-      renderBoard(); // הכוכבית האחרונה מהבהבת באדום 3 פעמים
+      // הכוכבית האחרונה מהבהבת באדום 3 פעמים. שורת התור לא מקבלת טקסט ארוך, כדי שהלוח לא יקפוץ
+      renderBoard();
 
       clearTimeout(endTimer);
       endTimer = setTimeout(() => {
         gameState.scores[winnerNum]++;
         gameState.currentPlayer = winnerNum;
-        document.getElementById('turn-text').innerText = `🎉 ${winText}`;
+        document.getElementById('turn-text').innerText = winnerName; // רק השם, כמו בכל תור
         updateHeaderUI();
 
         document.getElementById('modal-winner-title').innerText = winText;
@@ -1315,7 +1331,7 @@
     }
 
     function playErrorSound() {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
+      if (!soundReady()) return;
       const now = audioCtx.currentTime;
       [0, 0.16].forEach(offset => {
         const osc = audioCtx.createOscillator();
@@ -1337,7 +1353,7 @@
     try { soundOn = localStorage.getItem('tts-sound') !== 'off'; } catch (e) {}
 
     function applySoundState() {
-      masterGain.gain.value = soundOn ? 1 : 0;
+      if (masterGain) masterGain.gain.value = soundOn ? 1 : 0;
       const btn = document.getElementById('sound-btn');
       document.getElementById('sound-off-line').classList.toggle('hidden', soundOn);
       document.getElementById('sound-icon').classList.toggle('opacity-50', !soundOn);
