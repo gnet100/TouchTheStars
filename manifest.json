@@ -1,6 +1,6 @@
 {
-  "name": "Touch the Stars - כוכבי החשיבה",
-  "short_name": "Touch the Stars",
+  "name": "Thinking Stars - כוכבי החשיבה",
+  "short_name": "Thinking Stars",
   "description": "משחק חשיבה לשניים: מי שנשאר עם הכוכבית האחרונה מפסיד",
   "lang": "he",
   "dir": "rtl",
@@ -11,8 +11,23 @@
   "background_color": "#02040a",
   "theme_color": "#0b0f19",
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

@@ -1,4 +1,4 @@
-// Touch the Stars - service worker
+// Thinking Stars - service worker
 // 1. The page itself (navigation): always ask the server first and skip the browser's
 //    HTTP cache, so a new version shows up right away. Offline: serve the cached page.
 // 2. Everything else: network first, cached copy as a fallback.
