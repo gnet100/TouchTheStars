@@ -46,7 +46,6 @@
       #board-container > * + * { margin-top: 0.3rem; }
       #board-container > div { padding-top: 0.25rem; padding-bottom: 0.25rem; }
       #board-container .w-9 { width: 2rem; height: 2rem; }
-      #board-tip { margin-top: 0.4rem; padding: 0.3rem 0.5rem; }
       #tab-arena { padding-bottom: 0.5rem; }
     }
 
@@ -432,13 +431,7 @@
           <button id="home-btn" type="button" onclick="goToStep(1)" title="מסך הפתיחה" aria-label="מסך הפתיחה" class="w-11 h-11 shrink-0 rounded-full bg-[#171c2b] text-on-surface border border-white/20 shadow-md flex items-center justify-center hover:bg-white/20 active:scale-95 transition-all cursor-pointer">
             <span class="material-symbols-outlined text-[22px] text-tertiary">home</span>
           </button>
-        </div>
-
-        <div id="board-tip" class="mt-2.5 w-full flex items-center gap-1.5 p-2 rounded-xl bg-black/30 text-on-surface-variant border border-white/5">
-          <span class="material-symbols-outlined text-[18px] text-tertiary">lightbulb</span>
-          <span id="tip-text" class="text-xs font-bold">לחץ על כוכבית או רצף סמוך כדי לכבות אותן.</span>
-        </div>
-      </div>
+        </div>      </div>
 
     </div>
   </main>
@@ -942,11 +935,6 @@
       commitBtn.classList.toggle('opacity-50', !canPlay);
       commitBtn.classList.toggle('cursor-not-allowed', !canPlay);
 
-      // רמז מתחת ללוח. כשנשארת כוכבית אחרונה הוא הופך לאזהרה
-      const lastStar = gameState.isGameOverHandled && countStars(gameState.board) === 1;
-      const tip = document.getElementById('tip-text');
-      tip.innerText = lastStar ? 'אזהרה: נותרה כוכבית אחרונה! מהבהבת באדום...' : 'לחץ על כוכבית או רצף סמוך כדי לכבות אותן.';
-      tip.classList.toggle('text-error', lastStar);
       styleTurnBanner();
     }
 
