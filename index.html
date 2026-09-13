@@ -38,6 +38,10 @@
     /* בלי "משיכה לרענון" בטעות באמצע משחק */
     html, body { overscroll-behavior: none; }
 
+    /* אייפון: בלי הגדלה בנגיעה כפולה (זום בצביטה נשאר) ובלי הבהוב אפור בכל נגיעה */
+    * { touch-action: manipulation; }
+    html { -webkit-tap-highlight-color: transparent; }
+
     /* מסכים נמוכים: מצמצמים רווחים וכוכביות כדי שכל הלוח ייכנס. אם עדיין לא נכנס, הזירה נגללת */
     @media (max-height: 720px) {
       .arena-pt { padding-top: calc(4.5rem + env(safe-area-inset-top, 0px)); }
@@ -98,6 +102,8 @@
   <script id="tailwind-config">
     tailwind.config = {
       darkMode: "class",
+      // אפקט ריחוף רק במכשירים עם עכבר. באייפון הוא "נתקע" על כפתור אחרי נגיעה
+      future: { hoverOnlyWhenSupported: true },
       theme: {
         extend: {
           colors: {
@@ -312,7 +318,7 @@
             <span class="material-symbols-outlined text-[18px]">person</span>
             <span>שם שחקן 1:</span>
           </label>
-          <input id="setup-p1-name" type="text" value="שחקן 1" class="w-full h-11 px-3.5 rounded-xl bg-[#171c2b] border border-player1/60 text-on-surface focus:outline-none focus:border-player1 text-xs font-bold"/>
+          <input id="setup-p1-name" type="text" value="שחקן 1" class="w-full h-11 px-3.5 rounded-xl bg-[#171c2b] border border-player1/60 text-on-surface focus:outline-none focus:border-player1 text-base font-bold"/>
         </div>
 
         <div id="p2-name-box" class="flex flex-col gap-3 text-right hidden">
@@ -320,7 +326,7 @@
             <span class="material-symbols-outlined text-[18px]">person_outline</span>
             <span>שם שחקן 2:</span>
           </label>
-          <input id="setup-p2-name" type="text" value="שחקן 2" class="w-full h-11 px-3.5 rounded-xl bg-[#171c2b] border border-secondary/60 text-on-surface focus:outline-none focus:border-secondary text-xs font-bold"/>
+          <input id="setup-p2-name" type="text" value="שחקן 2" class="w-full h-11 px-3.5 rounded-xl bg-[#171c2b] border border-secondary/60 text-on-surface focus:outline-none focus:border-secondary text-base font-bold"/>
         </div>
 
         <!-- קו דק מפריד בין שמות השחקנים לבחירת המתחיל -->
@@ -450,7 +456,6 @@
 
       <div class="flex flex-col gap-1">
         <h2 id="modal-winner-title" class="font-game-title text-2xl font-black text-primary tracking-wide">שחקן ניצח!</h2>
-        <p id="modal-winner-subtitle" class="text-xs text-on-surface-variant font-bold">השחקן השני נשאר עם הכוכבית האחרונה והפסיד.</p>
       </div>
 
       <div class="w-full bg-[#171c2b] rounded-2xl p-3 border border-white/10 flex items-center justify-around my-1">
@@ -860,9 +865,6 @@
       // למחשב ניסוח בזכר בלבד; לשחקנים ניסוח ניטרלי (ניצח/ה)
       const isComputer = (num) => gameState.gameMode === 'ai' && num === 2;
       const winText = isComputer(winnerNum) ? `${winnerName} ניצח!` : `${winnerName} ניצח/ה!`;
-      const loseText = isComputer(loserNum)
-        ? `${loserName} נשאר עם הכוכבית האחרונה והפסיד.`
-        : `${loserName} נשאר/ה עם הכוכבית האחרונה והפסיד/ה.`;
 
       document.getElementById('turn-text').innerText = `הכוכבית האחרונה נשארה ל${loserName}!`;
       renderBoard(); // הכוכבית האחרונה מהבהבת באדום 3 פעמים
@@ -875,7 +877,6 @@
         updateHeaderUI();
 
         document.getElementById('modal-winner-title').innerText = winText;
-        document.getElementById('modal-winner-subtitle').innerText = loseText;
         document.getElementById('modal-p1-name').innerText = gameState.player1Name;
         document.getElementById('modal-p2-name').innerText = gameState.player2Name;
         document.getElementById('next-starter-1-name').innerText = gameState.player1Name;
