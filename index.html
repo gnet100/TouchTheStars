@@ -166,10 +166,17 @@
           </div>
         </button>
       </div>
-      <button type="button" onclick="goToStep(5)" class="self-end mt-6 mb-4 px-1 py-1 flex items-center gap-1.5 text-sm font-bold text-primary/90 hover:text-primary hover:scale-110 active:scale-95 transition-all">
-        <span>הוראות</span>
-        <span class="material-symbols-outlined text-[18px]">menu_book</span>
-      </button>
+      <div class="w-full flex items-center justify-between mt-6 mb-4">
+        <!-- צליל: פעיל, או כבוי עם קו אלכסוני אדום -->
+        <button id="sound-btn" type="button" onclick="toggleSound()" title="צליל פעיל" aria-label="צליל" aria-pressed="true" class="relative w-8 h-8 shrink-0 flex items-center justify-center text-primary/90 hover:text-primary hover:scale-110 active:scale-95 transition-all">
+          <span id="sound-icon" class="material-symbols-outlined text-[22px] transition-opacity">volume_up</span>
+          <span id="sound-off-line" class="absolute w-7 h-[3px] rounded-full bg-red-500 rotate-45 pointer-events-none shadow-[0_0_0_1.5px_#0d111d] hidden"></span>
+        </button>
+        <button type="button" onclick="goToStep(5)" class="px-1 py-1 flex items-center gap-1.5 text-sm font-bold text-primary/90 hover:text-primary hover:scale-110 active:scale-95 transition-all">
+          <span>הוראות</span>
+          <span class="material-symbols-outlined text-[18px]">menu_book</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -482,6 +489,11 @@
   <script>
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
+    // כל הצלילים עוברים דרך masterGain: כיבוי הצליל משתיק מיד גם צליל שכבר מתנגן
+    const masterGain = audioCtx.createGain();
+    const speakers = audioCtx.destination;
+    masterGain.connect(speakers);
+
     // בטלפונים הצליל נפתח רק אחרי נגיעה של המשתמש. פותחים אותו בכל נגיעה, כך שגם כשהמחשב מתחיל יש צליל
     function unlockAudio() {
       if (audioCtx.state === 'running') return;
@@ -500,7 +512,7 @@
       gain.gain.setValueAtTime(0.08, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
       osc.connect(gain);
-      gain.connect(audioCtx.destination);
+      gain.connect(masterGain);
       osc.start(now);
       osc.stop(now + 0.08);
     }
@@ -516,7 +528,7 @@
       gain.gain.setValueAtTime(0.25, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
       osc.connect(gain);
-      gain.connect(audioCtx.destination);
+      gain.connect(masterGain);
       osc.start(now);
       osc.stop(now + 0.35);
     }
@@ -577,7 +589,7 @@
           gain1.gain.setValueAtTime(0.25, startTime);
           gain1.gain.exponentialRampToValueAtTime(0.001, endTime);
           osc1.connect(gain1);
-          gain1.connect(audioCtx.destination);
+          gain1.connect(masterGain);
           osc1.start(startTime);
           osc1.stop(endTime);
 
@@ -588,7 +600,7 @@
           gain2.gain.setValueAtTime(0.12, startTime);
           gain2.gain.exponentialRampToValueAtTime(0.001, endTime);
           osc2.connect(gain2);
-          gain2.connect(audioCtx.destination);
+          gain2.connect(masterGain);
           osc2.start(startTime);
           osc2.stop(endTime);
         });
@@ -609,7 +621,7 @@
         gain.gain.setValueAtTime(0.15, startTime);
         gain.gain.exponentialRampToValueAtTime(0.001, endTime);
         osc.connect(gain);
-        gain.connect(audioCtx.destination);
+        gain.connect(masterGain);
         osc.start(startTime);
         osc.stop(endTime);
       });
@@ -1312,12 +1324,34 @@
         gain.gain.setValueAtTime(0.06, now + offset);
         gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.12);
         osc.connect(gain);
-        gain.connect(audioCtx.destination);
+        gain.connect(masterGain);
         osc.start(now + offset);
         osc.stop(now + offset + 0.12);
       });
     }
 
+    // ================= צליל =================
+    // מצב הצליל נשמר בטלפון, כך שהבחירה נשארת גם אחרי סגירת המשחק
+    let soundOn = true;
+    try { soundOn = localStorage.getItem('tts-sound') !== 'off'; } catch (e) {}
+
+    function applySoundState() {
+      masterGain.gain.value = soundOn ? 1 : 0;
+      const btn = document.getElementById('sound-btn');
+      document.getElementById('sound-off-line').classList.toggle('hidden', soundOn);
+      document.getElementById('sound-icon').classList.toggle('opacity-50', !soundOn);
+      btn.title = soundOn ? 'צליל פעיל' : 'צליל כבוי';
+      btn.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+    }
+
+    function toggleSound() {
+      soundOn = !soundOn;
+      try { localStorage.setItem('tts-sound', soundOn ? 'on' : 'off'); } catch (e) {}
+      applySoundState();
+      if (soundOn) playSelectSound();
+    }
+
+    applySoundState();
     renderPyramidPreview(5);
     resetCurrentRound();
 
