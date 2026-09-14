@@ -3,6 +3,11 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+  <!-- מדיניות אבטחה: הדף טוען רק קבצים מהאתר עצמו, ואין בו קוד שכתוב בתוך תגיות (הכפתורים עובדים דרך data-action).
+       ל-style יש 'unsafe-inline' בגלל בלוק ה-style ומאפייני style. frame-ancestors לא עובד בתגית meta, ולכן הוא לא כאן -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'"/>
+  <!-- המשחק כהה: הדפדפן מצייר את רכיבי הטופס בגרסה הכהה, ובאנדרואיד לא "מכהה" את הדף בעצמו -->
+  <meta name="color-scheme" content="dark"/>
   <title>Thinking Stars</title>
   <meta name="description" content="משחק חשיבה לשניים: מי שנשאר עם הכוכבית האחרונה מפסיד"/>
   <meta name="theme-color" content="#0b0f19"/>
