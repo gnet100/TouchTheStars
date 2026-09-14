@@ -104,32 +104,8 @@
       animation: modal-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     }
   </style>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script id="tailwind-config">
-    tailwind.config = {
-      darkMode: "class",
-      // אפקט ריחוף רק במכשירים עם עכבר. באייפון הוא "נתקע" על כפתור אחרי נגיעה
-      future: { hoverOnlyWhenSupported: true },
-      theme: {
-        extend: {
-          colors: {
-            "surface-variant": "#313540", "background": "#0f131d",
-            "tertiary": "#7bd0ff", "surface-container": "#1c1f2a",
-            "primary-container": "#06b6d4", "surface-container-low": "#171b26",
-            "secondary-container": "#b50036", "on-surface-variant": "#bcc9cd",
-            "surface-container-highest": "#313540", "on-primary": "#003640", "outline": "#869397",
-            "surface-bright": "#353944", "secondary": "#ffb2b7", "primary": "#4cd7f6",
-            "on-surface": "#dfe2f1", "surface-container-high": "#262a35", "surface": "#0f131d",
-            "error": "#ffb4ab",
-            "player1": "#60a5fa"
-          },
-          borderRadius: { "full": "9999px" },
-          spacing: { "margin-mobile": "1rem", "space-md": "1rem", "space-sm": "0.5rem", "space-xs": "0.25rem" },
-          fontFamily: { "headline-md": ["Rubik"], "headline-xl-mobile": ["Rubik"], "body-sm": ["Rubik"], "label-lg": ["Rubik"], "label-sm": ["Rubik"], "headline-xl": ["Rubik"], "body-md": ["Rubik"], "label-md": ["Rubik"], "headline-lg": ["Rubik"] }
-        }
-      }
-    }
-  </script>
+  <!-- העיצוב של Tailwind, שנבנה מראש (ההגדרות ב-tailwind.config.js). נשאר אחרי בלוק ה-style, כדי שסדר העדיפויות בין הכללים לא ישתנה -->
+  <link rel="stylesheet" href="css/app.css"/>
 </head>
 <body id="app-body" class="bg-[#02040a] font-body-md text-body-md text-on-surface min-h-screen flex flex-col antialiased relative">
 
