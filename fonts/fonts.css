@@ -1,0 +1,73 @@
+/* גופנים מקומיים: Rubik ו-Fredoka (עברית ולטינית בלבד), וגופן אייקונים מצומצם.
+   הורדו מ-Google Fonts ב-14.9.2026. הרישיונות ליד הקבצים: OFL-Rubik.txt ו-OFL-Fredoka.txt (SIL OFL 1.1),
+   LICENSE-MaterialSymbols.txt (Apache 2.0).
+
+   גופן האייקונים מכיל רק את 24 האייקונים שברשימה. אייקון שלא ברשימה יוצג כמילה, ולכן כשמוסיפים אייקון
+   מורידים את הגופן מחדש עם הרשימה המעודכנת (עם User-Agent של דפדפן, כדי לקבל woff2):
+   https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0&icon_names=<רשימה>&display=block
+   הרשימה: arrow_back, arrow_forward, block, check_circle, close, group, home, hourglass_empty, lock, lock_open,
+   menu_book, pause, person, person_outline, play_arrow, play_circle, privacy_tip, refresh, replay, restore,
+   smart_toy, star, trophy, volume_up */
+
+/* Rubik */
+@font-face {
+  font-family: 'Rubik';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url(rubik-hebrew.woff2) format('woff2');
+  unicode-range: U+0307-0308, U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F;
+}
+@font-face {
+  font-family: 'Rubik';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url(rubik-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Fredoka: המשקל הכבד ביותר הוא 700 */
+@font-face {
+  font-family: 'Fredoka';
+  font-style: normal;
+  font-weight: 600 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(fredoka-hebrew.woff2) format('woff2');
+  unicode-range: U+0307-0308, U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F;
+}
+@font-face {
+  font-family: 'Fredoka';
+  font-style: normal;
+  font-weight: 600 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(fredoka-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* אייקונים: block, כדי שלא יוצג שם האייקון כמילה בזמן שהגופן נטען */
+@font-face {
+  font-family: 'Material Symbols Outlined';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url(material-symbols-outlined.woff2) format('woff2');
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
