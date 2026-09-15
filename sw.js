@@ -1,12 +1,20 @@
 // Thinking Stars - service worker
-// 1. The page itself (navigation): always ask the server first and skip the browser's
+// 1. Install: store every file of the site up front (the list below), so the game opens
+//    offline after the first visit, including fonts that only later screens use.
+//    A new file in the site must be added to PRECACHE.
+// 2. The page itself (navigation): always ask the server first and skip the browser's
 //    HTTP cache, so a new version shows up right away. Offline: serve the cached page.
-// 2. Everything else: network first, cached copy as a fallback.
-// 3. The page sends the list of files it loaded (fonts, Tailwind, images), so the game
-//    also opens offline right after the first visit.
-const CACHE = 'touch-the-stars-v3';
+// 3. Everything else from this site: network first, cached copy as a fallback.
+// 4. Requests to other servers are not handled here (the page loads nothing from them).
+// 5. All sites under gnet100.github.io share one cache storage, so only this game's
+//    caches (touch-the-stars-*) are ever deleted.
+const CACHE = 'touch-the-stars-v4';
+const PREFIX = 'touch-the-stars-';
 const PRECACHE = [
   './', './index.html', './manifest.json', './favicon.ico',
+  './css/app.css', './js/game.js',
+  './fonts/fonts.css', './fonts/rubik-hebrew.woff2', './fonts/rubik-latin.woff2',
+  './fonts/fredoka-hebrew.woff2', './fonts/fredoka-latin.woff2', './fonts/material-symbols-outlined.woff2',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-512-maskable.png', './icons/apple-touch-icon.png',
   './images/two-players.png', './images/vs-computer.png'
 ];
@@ -20,13 +28,14 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+    caches.keys()
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith(PREFIX) && k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
 
 function saveCopy(request, response) {
-  if (response && (response.ok || response.type === 'opaque')) {
+  if (response && response.ok && response.type === 'basic') {
     const copy = response.clone();
     caches.open(CACHE).then((c) => c.put(request, copy)).catch(() => {});
   }
@@ -35,7 +44,7 @@ function saveCopy(request, response) {
 
 self.addEventListener('fetch', (event) => {
   const req = event.request;
-  if (req.method !== 'GET') return;
+  if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
 
   if (req.mode === 'navigate') {
     // The game is one page: always store the latest copy under one fixed key ('./'),
@@ -53,25 +62,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Exact URL match only: the two Google Fonts stylesheets differ only in their query string
   event.respondWith(
     fetch(req)
       .then((res) => saveCopy(req, res))
       .catch(() => caches.match(req, { ignoreVary: true }).then((hit) => hit || Response.error()))
   );
-});
-
-self.addEventListener('message', (event) => {
-  const data = event.data || {};
-  if (data.type !== 'CACHE_URLS' || !Array.isArray(data.urls)) return;
-  event.waitUntil(caches.open(CACHE).then((cache) => Promise.all(data.urls.map(async (url) => {
-    try {
-      if (await cache.match(url, { ignoreVary: true })) return;
-      let res = null;
-      // Fonts must be stored as CORS responses, otherwise the browser rejects them offline
-      try { res = await fetch(url, { mode: 'cors', credentials: 'omit' }); } catch (e) { res = null; }
-      if (!res || !res.ok) res = await fetch(url, { mode: 'no-cors' });
-      if (res && (res.ok || res.type === 'opaque')) await cache.put(url, res);
-    } catch (e) { /* skip files that cannot be fetched */ }
-  }))));
 });

@@ -1,3 +1,10 @@
 .DS_Store
 Thumbs.db
 .claude/
+# רשת ביטחון: מפתחות חתימה אף פעם לא נכנסים למאגר
+*.p12
+*.jks
+*.keystore
+*.pem
+# הקובץ העצמאי של Tailwind יושב מחוץ למאגר
+tailwindcss*.exe

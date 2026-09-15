@@ -872,22 +872,11 @@ applySoundState();
 renderPyramidPreview(5);
 resetCurrentRound();
 
-// התקנה כאפליקציה ועבודה בלי אינטרנט (ב-https, או ב-localhost לבדיקות)
+// התקנה כאפליקציה ועבודה בלי אינטרנט (ב-https, או ב-localhost לבדיקות).
+// ה-service worker שומר מראש את כל קובצי האתר (הרשימה ב-sw.js)
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   window.addEventListener('load', () => {
-    // שולחים ל-service worker את כל הקבצים שהדף טען (גופנים, Tailwind, תמונות),
-    // כדי שהמשחק ייפתח בלי אינטרנט כבר אחרי הביקור הראשון
-    const sendLoadedFiles = (worker) => {
-      if (!worker) return;
-      const urls = performance.getEntriesByType('resource').map(e => e.name).filter(u => /^https?:/.test(u));
-      worker.postMessage({ type: 'CACHE_URLS', urls });
-    };
-    // גרסה חדשה של ה-service worker שנכנסה לפעולה מקבלת גם היא את הרשימה
-    navigator.serviceWorker.addEventListener('controllerchange', () => sendLoadedFiles(navigator.serviceWorker.controller));
-    navigator.serviceWorker.register('sw.js')
-      .then(() => navigator.serviceWorker.ready)
-      .then((reg) => sendLoadedFiles(reg.active))
-      .catch(() => {});
+    navigator.serviceWorker.register('sw.js').catch(() => {});
   });
 }
 
