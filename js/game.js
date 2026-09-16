@@ -935,10 +935,19 @@ applySoundState();
 renderPyramidPreview(5);
 resetCurrentRound();
 
+// האם המשחק רץ כאפליקציה ארוזה (Capacitor) ולא בדפדפן. js/app.js משתמש בזה בשביל המנעול,
+// מסך הפרטיות וכפתור "חזור". נבדק בכל קריאה, ולא פעם אחת, כדי שגשר שנטען רגע מאוחר לא יפספס
+function isInApp() {
+  return !!(window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' &&
+    window.Capacitor.isNativePlatform());
+}
+
 // התקנה כאפליקציה ועבודה בלי אינטרנט (ב-https, או ב-localhost לבדיקות).
-// ה-service worker שומר מראש את כל קובצי האתר (הרשימה ב-sw.js)
+// ה-service worker שומר מראש את כל קובצי האתר (הרשימה ב-sw.js).
+// באפליקציה לא רושמים אותו: הקבצים כבר בתוכה, והכתובת שם היא https://localhost
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   window.addEventListener('load', () => {
+    if (isInApp()) return;
     navigator.serviceWorker.register('sw.js').catch(() => {});
   });
 }

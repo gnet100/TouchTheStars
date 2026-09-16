@@ -159,7 +159,7 @@
           </div>
         </button>
       </div>
-      <div class="w-full flex items-center justify-between mt-6 mb-4">
+      <div id="home-bottom-row" class="w-full flex items-center justify-between mt-6 mb-4">
         <!-- צליל: פעיל, או כבוי עם קו אלכסוני אדום -->
         <button id="sound-btn" type="button" data-action="toggleSound" title="צליל פעיל" aria-label="צליל" aria-pressed="true" class="relative w-8 h-8 shrink-0 flex items-center justify-center text-primary/90 hover:text-primary hover:scale-110 active:scale-95 transition-all">
           <span id="sound-icon" class="material-symbols-outlined text-[22px] transition-opacity">volume_up</span>
@@ -486,6 +486,99 @@
     </div>
   </div>
 
+  <!-- חלקים שקיימים רק באפליקציה הארוזה. js/app.js מעתיק אותם לדף כשהוא רץ ב-Capacitor.
+       בדפדפן <template> אינו מוצג, אינו נספר ואינו טוען כלום, ולכן האתר נשאר בדיוק כפי שהיה -->
+  <template id="app-parts">
+    <button id="privacy-link" type="button" data-action="goToStep" data-arg="7" class="px-1 py-1 flex items-center gap-1.5 text-sm font-bold text-primary/90 hover:text-primary hover:scale-110 active:scale-95 transition-all">
+      <span>פרטיות</span>
+      <span class="material-symbols-outlined text-[18px]">privacy_tip</span>
+    </button>
+
+    <!-- חלון המנעול: נפתח בנגיעה על רמה או לוח נעולים. בלי הודעות קופצות שלא ביקשו -->
+    <div id="lock-modal" class="fixed inset-0 z-[60] bg-black/80 flex flex-col items-center justify-center p-margin-mobile hidden">
+      <div class="w-[340px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/60 text-center modal-animation space-y-3.5 max-h-full overflow-y-auto">
+        <div class="w-16 h-16 rounded-full bg-amber-400/15 border-2 border-amber-400 flex items-center justify-center text-amber-400 shadow-[0_0_18px_rgba(251,191,36,0.55)]">
+          <span class="material-symbols-outlined text-[36px]">lock</span>
+        </div>
+
+        <h2 class="font-game-title text-xl font-black text-primary tracking-wide">הגרסה המלאה</h2>
+        <p class="text-sm font-bold text-on-surface-variant leading-relaxed">נפתחות רמות 4 ו-5, ולוח של 6 שורות.</p>
+
+        <div class="w-full bg-[#171c2b] rounded-2xl p-3 border border-white/10 flex flex-col gap-1">
+          <!-- המחיר מגיע מגוגל, ונכתב רק עם textContent. עד שהוא מגיע מוצג המחיר הקבוע -->
+          <span id="lock-price" class="text-lg font-black text-primary">4.90 ₪</span>
+          <span class="text-xs font-bold text-on-surface-variant">תשלום חד-פעמי דרך Google Play</span>
+        </div>
+
+        <p id="lock-status" class="text-xs font-bold text-on-surface-variant leading-relaxed"></p>
+
+        <div class="flex flex-col gap-2 w-full">
+          <button id="lock-buy" type="button" data-action="buyUnlock" class="w-full h-11 rounded-xl bg-primary text-on-primary flex items-center justify-center gap-2 shadow-xl active:scale-95 hover:scale-105 transition-all font-bold text-base cursor-pointer">
+            <span class="material-symbols-outlined text-[20px]">lock_open</span>
+            <span>לרכישה</span>
+          </button>
+          <button id="lock-restore" type="button" data-action="restoreUnlock" class="w-full h-11 rounded-xl bg-[#171c2b] text-on-surface border border-white/20 flex items-center justify-center gap-2 active:scale-95 hover:scale-105 transition-all font-bold text-sm cursor-pointer">
+            <span class="material-symbols-outlined text-[18px] text-tertiary">restore</span>
+            <span>שחזור רכישה</span>
+          </button>
+          <button id="lock-close" type="button" data-action="closeLock" class="w-full h-11 rounded-xl bg-[#171c2b] text-on-surface border border-white/20 flex items-center justify-center gap-2 active:scale-95 hover:scale-105 transition-all font-bold text-sm cursor-pointer">
+            <span>לא עכשיו</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- מסך 7: פרטיות. חובה שיעבוד בלי אינטרנט, ולכן הוא חלק מהדף.
+         ⚠️ הטקסט הזה חייב להיות זהה ל-privacy.html שיעלה לאתר (שלב ז). משנים כאן, מעדכנים גם שם -->
+    <div id="setup-view-step7" class="fixed inset-0 z-50 bg-black/70 flex flex-col items-center justify-center p-margin-mobile hidden">
+      <div class="w-[340px] h-[560px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/50 overflow-y-auto justify-between">
+        <div class="w-full flex items-center justify-between border-b border-white/10 pb-2">
+          <button type="button" data-action="goToStep" data-arg="1" class="text-xs text-primary font-bold flex items-center gap-1 hover:scale-110 transition-transform">
+            <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+            <span>חזור</span>
+          </button>
+          <h2 class="font-game-title text-lg font-black text-primary text-center tracking-wider">פרטיות</h2>
+          <div class="w-12"></div>
+        </div>
+
+        <div class="w-full flex-1 overflow-y-auto my-2 flex flex-col gap-2 text-right">
+          <p class="text-xs text-on-surface-variant font-bold">Thinking Stars · Net100 Apps · net100apps@gmail.com<br/>עודכן: 16.9.2026</p>
+
+          <article class="rounded-xl bg-[#171c2b] border border-white/10 p-2.5 flex flex-col gap-1">
+            <h3 class="text-sm font-black text-primary">איזה מידע נאסף</h3>
+            <p class="text-xs text-on-surface-variant font-bold leading-relaxed">אף מידע אישי לא נאסף ולא נשלח. אין חשבונות, אין פרסומות ואין כלי מדידה.</p>
+          </article>
+
+          <article class="rounded-xl bg-[#171c2b] border border-white/10 p-2.5 flex flex-col gap-1">
+            <h3 class="text-sm font-black text-primary">מה נשמר במכשיר</h3>
+            <p class="text-xs text-on-surface-variant font-bold leading-relaxed">הגדרת הצליל ומצב הפתיחה של הגרסה המלאה, במכשיר בלבד. שמות השחקנים לא נשמרים.</p>
+          </article>
+
+          <article class="rounded-xl bg-[#171c2b] border border-white/10 p-2.5 flex flex-col gap-1">
+            <h3 class="text-sm font-black text-primary">רכישה</h3>
+            <p class="text-xs text-on-surface-variant font-bold leading-relaxed">הרכישה מתבצעת דרך Google Play, לפי מדיניות הפרטיות של גוגל. פרטי התשלום לא מגיעים אלינו.</p>
+          </article>
+
+          <article class="rounded-xl bg-[#171c2b] border border-white/10 p-2.5 flex flex-col gap-1">
+            <h3 class="text-sm font-black text-primary">ילדים</h3>
+            <p class="text-xs text-on-surface-variant font-bold leading-relaxed">המשחק מתאים לילדים, ולא נאסף מהם שום מידע.</p>
+          </article>
+
+          <article class="rounded-xl bg-[#171c2b] border border-white/10 p-2.5 flex flex-col gap-1">
+            <h3 class="text-sm font-black text-primary">שינויים</h3>
+            <p class="text-xs text-on-surface-variant font-bold leading-relaxed">כל שינוי במדיניות יופיע במסך הזה ובדף המדיניות של המשחק.</p>
+          </article>
+        </div>
+
+        <button type="button" data-action="goToStep" data-arg="1" class="w-full h-11 rounded-xl bg-[#171c2b] text-on-surface border border-white/20 flex items-center justify-center gap-2 active:scale-95 hover:scale-105 transition-all font-bold text-base">
+          <span class="material-symbols-outlined text-[20px] text-tertiary">arrow_forward</span>
+          <span>חזור</span>
+        </button>
+      </div>
+    </div>
+  </template>
+
   <script src="js/game.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
