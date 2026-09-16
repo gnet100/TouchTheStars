@@ -416,8 +416,8 @@
         <div class="w-full flex flex-col items-center space-y-2 py-space-xs" id="board-container"></div>
 
         <div class="w-full flex items-center justify-between gap-3 mt-3 pt-2 border-t border-white/10">
-          <button id="restart-btn" type="button" data-action="resetCurrentRound" title="התחל מחדש" aria-label="התחל מחדש" class="w-11 h-11 shrink-0 rounded-full bg-[#171c2b] text-on-surface border border-white/20 shadow-md flex items-center justify-center hover:bg-white/20 active:scale-95 transition-all cursor-pointer">
-            <span class="material-symbols-outlined text-[22px] text-tertiary">refresh</span>
+          <button id="restart-btn" type="button" data-action="undoOrRestart" title="התחל מחדש" aria-label="התחל מחדש" class="w-11 h-11 shrink-0 rounded-full bg-[#171c2b] text-on-surface border border-white/20 shadow-md flex items-center justify-center hover:bg-white/20 active:scale-95 transition-all cursor-pointer">
+            <span id="restart-icon" class="material-symbols-outlined text-[22px] text-tertiary">refresh</span>
           </button>
 
           <button id="commit-btn" type="button" data-action="commitMove" class="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-xl bg-primary-container text-on-primary shadow-md font-bold text-base hover:opacity-95 active:scale-98 transition-all cursor-pointer">
@@ -458,16 +458,24 @@
       </div>
 
       <div class="flex flex-col gap-2 w-full pt-1">
-        <p class="text-xs font-bold text-on-surface-variant">מי מתחיל בסיבוב הבא?</p>
-        <div class="flex gap-2 w-full">
-          <button data-action="startNextRound" data-arg="1" class="flex-1 min-w-0 h-11 px-2 rounded-xl bg-player1 text-[#0b1b3a] flex items-center justify-center gap-1.5 shadow-xl active:scale-95 hover:scale-105 transition-all font-bold text-sm cursor-pointer">
-            <span class="material-symbols-outlined text-[18px]">person</span>
-            <span id="next-starter-1-name" class="truncate">שחקן 1</span>
-          </button>
-          <button data-action="startNextRound" data-arg="2" class="flex-1 min-w-0 h-11 px-2 rounded-xl bg-secondary text-[#4a0016] flex items-center justify-center gap-1.5 shadow-xl active:scale-95 hover:scale-105 transition-all font-bold text-sm cursor-pointer">
-            <span id="next-starter-2-icon" class="material-symbols-outlined text-[18px]">smart_toy</span>
-            <span id="next-starter-2-name" class="truncate">מחשב</span>
-          </button>
+        <!-- מסך הסיום: "שחק שוב" ו"חזור להתחלה" בלבד. "שחק שוב" מחליף את עצמו בשאלה מי מתחיל (playAgain ב-js/game.js),
+             והבחירה מתחילה סיבוב חדש עם אותה פירמידה ואותן הגדרות, והניקוד נשמר -->
+        <button id="play-again-btn" type="button" data-action="playAgain" class="w-full h-11 rounded-xl bg-primary text-on-primary flex items-center justify-center gap-2 shadow-xl active:scale-95 hover:scale-105 transition-all font-bold text-base cursor-pointer">
+          <span class="material-symbols-outlined text-[20px]">replay</span>
+          <span>שחק שוב</span>
+        </button>
+        <div id="starter-choice" class="flex flex-col gap-2 w-full pt-1 hidden">
+          <p class="text-xs font-bold text-on-surface-variant">מי מתחיל?</p>
+          <div class="flex gap-2 w-full">
+            <button data-action="startNextRound" data-arg="1" class="flex-1 min-w-0 h-11 px-2 rounded-xl bg-player1 text-[#0b1b3a] flex items-center justify-center gap-1.5 shadow-xl active:scale-95 hover:scale-105 transition-all font-bold text-sm cursor-pointer">
+              <span class="material-symbols-outlined text-[18px]">person</span>
+              <span id="next-starter-1-name" class="truncate">שחקן 1</span>
+            </button>
+            <button data-action="startNextRound" data-arg="2" class="flex-1 min-w-0 h-11 px-2 rounded-xl bg-secondary text-[#4a0016] flex items-center justify-center gap-1.5 shadow-xl active:scale-95 hover:scale-105 transition-all font-bold text-sm cursor-pointer">
+              <span id="next-starter-2-icon" class="material-symbols-outlined text-[18px]">smart_toy</span>
+              <span id="next-starter-2-name" class="truncate">מחשב</span>
+            </button>
+          </div>
         </div>
 
         <button data-action="goToStartFromModal" class="w-full h-11 rounded-xl bg-[#171c2b] text-on-surface border border-white/20 font-headline-md flex items-center justify-center gap-2 hover:bg-white/15 active:scale-95 transition-all font-bold text-sm cursor-pointer">

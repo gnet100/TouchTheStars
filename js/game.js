@@ -198,6 +198,7 @@ let gameState = {
   scores: { 1: 0, 2: 0 },
   selectedRow: null,
   selectedIndices: [],
+  history: [],  // הלוח לפני כל מהלך, בשביל "מהלך אחד לאחור" מול המחשב
   isGameOverHandled: false,
   roundId: 0,   // מתחלף בכל סיבוב חדש, כדי שטיימרים מסיבוב קודם לא ישנו את הלוח
   busy: false   // מהלך באמצע אנימציה או מחשב חושב: חוסם לחיצות
@@ -313,15 +314,61 @@ function resetCurrentRound() {
   gameState.currentPlayer = gameState.starterPlayer;
   gameState.selectedRow = null;
   gameState.selectedIndices = [];
+  gameState.history = [];
   updateHeaderUI();
   renderBoard();
   if (gameState.currentPlayer === 2 && gameState.gameMode === 'ai') handleAiTurn();
+}
+
+// שומר את הלוח לפני מהלך, ואת מי שעשה אותו
+function pushHistory() {
+  gameState.history.push({ board: gameState.board.map(row => row.slice()), player: gameState.currentPlayer });
+}
+
+// אפשר ללחוץ על הכפתור העגול? מול המחשב: כשיש בחירה לבטל, או מהלך שלך לחזור ממנו
+function canUndo() {
+  return gameState.gameMode === 'ai' && !gameState.isGameOverHandled && !gameState.busy &&
+    (gameState.selectedIndices.length > 0 || gameState.history.some(s => s.player === 1));
+}
+
+// הכפתור העגול בזירה. בשני שחקנים: התחלת הסיבוב מחדש.
+// מול המחשב: קודם מבטל בחירה שעוד לא שוחקה, ואם אין בחירה חוזר שני צעדים,
+// כלומר מבטל גם את התשובה של המחשב וגם את המהלך שלך, והתור חוזר אליך
+function undoOrRestart() {
+  if (gameState.gameMode !== 'ai') { resetCurrentRound(); return; }
+  if (gameState.busy || gameState.isGameOverHandled) return;
+  if (gameState.selectedIndices.length) {
+    gameState.selectedRow = null;
+    gameState.selectedIndices = [];
+    renderBoard();
+    return;
+  }
+  let snap = null;
+  while (gameState.history.length && !snap) {
+    const s = gameState.history.pop();
+    if (s.player === 1) snap = s;
+  }
+  if (!snap) return;
+  gameState.roundId++;          // עוצר טיימרים של מהלך שעדיין רץ
+  gameState.busy = false;
+  gameState.board = snap.board.map(row => row.slice());
+  gameState.currentPlayer = 1;
+  gameState.selectedRow = null;
+  gameState.selectedIndices = [];
+  updateHeaderUI();
+  renderBoard();
 }
 
 // ממסך סוף הסיבוב: בוחרים מי מתחיל ומתחילים סיבוב חדש. הניקוד נשמר
 function startNextRound(starter) {
   gameState.starterPlayer = starter;
   resetCurrentRound();
+}
+
+// "שחק שוב" במסך הסיום: במקום הכפתור מופיעה השאלה מי מתחיל. לחיצה על שחקן מתחילה סיבוב חדש (startNextRound)
+function playAgain() {
+  document.getElementById('play-again-btn').classList.add('hidden');
+  document.getElementById('starter-choice').classList.remove('hidden');
 }
 
 function goToStartFromModal() {
@@ -400,6 +447,9 @@ function checkWinnerAndHandle() {
     document.getElementById('next-starter-2-icon').innerText = gameState.gameMode === 'ai' ? 'smart_toy' : 'person_outline';
     document.getElementById('modal-p1-score').innerText = gameState.scores[1];
     document.getElementById('modal-p2-score').innerText = gameState.scores[2];
+    // מסך הסיום נפתח תמיד במצב הראשון: "שחק שוב" ו"חזור להתחלה"
+    document.getElementById('play-again-btn').classList.remove('hidden');
+    document.getElementById('starter-choice').classList.add('hidden');
     document.getElementById('victory-modal').classList.remove('hidden');
 
     if (gameState.gameMode === 'ai' && winnerNum === 2) {
@@ -462,6 +512,17 @@ function renderBoard() {
   commitBtn.classList.toggle('opacity-50', !canPlay);
   commitBtn.classList.toggle('cursor-not-allowed', !canPlay);
 
+  // הכפתור העגול: מול המחשב "מהלך אחד לאחור" (או ביטול בחירה), ובשני שחקנים "התחל מחדש"
+  const undoMode = gameState.gameMode === 'ai';
+  const restartBtn = document.getElementById('restart-btn');
+  document.getElementById('restart-icon').innerText = undoMode ? 'restore' : 'refresh';
+  restartBtn.title = !undoMode ? 'התחל מחדש'
+    : (gameState.selectedIndices.length ? 'ביטול הבחירה' : 'מהלך אחד לאחור');
+  restartBtn.setAttribute('aria-label', restartBtn.title);
+  restartBtn.disabled = undoMode && !canUndo();
+  restartBtn.classList.toggle('opacity-50', restartBtn.disabled);
+  restartBtn.classList.toggle('cursor-not-allowed', restartBtn.disabled);
+
   styleTurnBanner();
 }
 
@@ -494,6 +555,7 @@ function commitMove() {
 
   const rIdx = gameState.selectedRow;
   const cIndices = [...gameState.selectedIndices];
+  pushHistory();
   gameState.busy = true; // חוסם בחירה ולחיצה נוספת עד שהמהלך מסתיים
 
   playMultipleMoveSoundsAndClear(rIdx, cIndices, () => {
@@ -672,6 +734,7 @@ function handleAiTurn() {
     if (round !== gameState.roundId || gameState.isGameOverHandled) return;
     const move = chooseAiMove(gameState.board, gameState.aiDifficultyLevel);
     if (!move) { gameState.busy = false; return; }
+    pushHistory();
     // מציגים לרגע אילו כוכביות המחשב בחר, ואז הן מתפוצצות
     playSelectSound();
     gameState.selectedRow = move.row;
@@ -884,7 +947,7 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
 // הכפתורים בדף לא מחזיקים קוד (onclick), כי מדיניות האבטחה של הדף (CSP) חוסמת קוד שכתוב בתוך תגיות.
 // כל כפתור מסמן data-action (שם הפעולה) ו-data-arg (הערך, אם יש), ומאזין אחד מפעיל את הפעולה
 const ACTIONS = { selectGameMode, toggleSound, goToStep, goBackFromStep3, setAiDiff, setStarterPlayer, selectRows,
-  applySetupAndStart, demoStep, demoTogglePlay, resetCurrentRound, commitMove, startNextRound, goToStartFromModal };
+  applySetupAndStart, demoStep, demoTogglePlay, undoOrRestart, commitMove, startNextRound, playAgain, goToStartFromModal };
 document.addEventListener('click', (e) => {
   const btn = e.target.closest('[data-action]');
   if (!btn || btn.disabled) return;
