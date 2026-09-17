@@ -65,6 +65,25 @@ def check_bundle(path: Path, problems: list) -> None:
         problems.append(f'the bundle contains native libraries: {native[:5]}')
 
 
+def check_app_content(apk: Path, www: Path, problems: list) -> None:
+    """מה שבאמת נמצא בתוך האפליקציה הוא בדיוק הקבצים שלנו, בית בבית."""
+    if not www.is_dir():
+        problems.append('www does not exist, so the content inside the app cannot be compared')
+        return
+    with zipfile.ZipFile(apk) as z:
+        inside = set(z.namelist())
+        checked = 0
+        for local in sorted(p for p in www.rglob('*') if p.is_file()):
+            entry = 'assets/public/' + local.relative_to(www).as_posix()
+            if entry not in inside:
+                problems.append(f'{entry} is missing from the app')
+                continue
+            if z.read(entry) != local.read_bytes():
+                problems.append(f'{entry} inside the app differs from the file we built')
+            checked += 1
+    print(f'app content: {checked} files compared against www')
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument('--root', default='android')
@@ -83,8 +102,13 @@ def main() -> int:
         print(f'bundle: {bundle} ({bundle.stat().st_size} bytes)')
         check_bundle(bundle, problems)
 
-    for apk in sorted(root.glob('app/build/outputs/apk/**/*.apk')):
+    apks = sorted(root.glob('app/build/outputs/apk/**/*.apk'))
+    for apk in apks:
         print(f'apk: {apk} ({apk.stat().st_size} bytes)')
+    if apks:
+        check_app_content(apks[0], Path('www'), problems)
+    else:
+        problems.append('no apk was built')
 
     print('\n'.join(problems) if problems else 'android checks passed')
     return 1 if problems else 0
