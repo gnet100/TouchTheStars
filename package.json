@@ -3,5 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "description": "Thinking Stars, packaged for Android with Capacitor. The website itself needs no build step.",
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@capacitor/android": "8.5.2",
+    "@capacitor/app": "8.1.1",
+    "@capacitor/cli": "8.5.2",
+    "@capacitor/core": "8.5.2",
+    "@capgo/native-purchases": "8.7.0",
+    "tailwindcss": "3.4.19"
+  }
 }

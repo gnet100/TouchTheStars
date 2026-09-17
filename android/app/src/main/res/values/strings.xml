@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Thinking Stars</string>
+    <string name="title_activity_main">Thinking Stars</string>
+    <string name="package_name">io.github.gnet100.thinkingstars</string>
+    <string name="custom_url_scheme">io.github.gnet100.thinkingstars</string>
+</resources>
