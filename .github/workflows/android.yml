@@ -1,0 +1,90 @@
+# בניית אפליקציית האנדרואיד, בענן בלבד.
+#
+# רץ ידנית. מייצר שלושה דברים: APK לבדיקה בטלפון, APK ו-AAB לא חתומים של גרסת הפרסום,
+# והמניפסט המאוחד שעליו רצות הבדיקות.
+#
+# החתימה האמיתית תתווסף בשלב ו, כשייווצר מפתח ההעלאה. עד אז ה-APK לבדיקה חתום במפתח
+# הזמני של gradle, ולכן בכל בנייה הוא חתום אחרת: לפני התקנה של גרסה חדשה מסירים את הקודמת.
+#
+# כל הרכיבים הם של גיטהאב עצמה ונעולים ל-commit מדויק, כפי שמדיניות המאגר דורשת.
+# אימות ה-gradle wrapper נעשה מול הגיבוב הרשמי של gradle.org, ולא דרך רכיב חיצוני שחסום אצלנו.
+name: Build Android app
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node 22 (Capacitor 8 requires 22 or newer)
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Set up JDK 21 (Capacitor 8 needs it, and the runner defaults to 17)
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install the exact dependencies from the lock file, without install scripts
+        run: npm ci --ignore-scripts
+
+      - name: The CSS in the repository matches its source
+        run: |
+          curl -fsSL -o /tmp/tailwindcss \
+            https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.19/tailwindcss-linux-x64
+          echo "4af3198c015616ea7d6617974ec3d70d987ecc00c1ca8463b0a30fd65cc7c06e  /tmp/tailwindcss" | sha256sum -c -
+          chmod +x /tmp/tailwindcss
+          /tmp/tailwindcss -c tailwind.config.js -i css/tailwind.css -o css/app.css --minify
+          git diff --exit-code -- css/app.css
+
+      - name: Build the app content (www)
+        run: sh scripts/build-www.sh
+
+      - name: The page carries no code inside tags, and www matches the site
+        run: python3 scripts/check-web.py --www
+
+      - name: The gradle wrapper is the one gradle.org published
+        run: |
+          version=$(sed -n 's/.*gradle-\([0-9.]*\)-all\.zip/\1/p' android/gradle/wrapper/gradle-wrapper.properties)
+          echo "gradle wrapper $version"
+          checksum=$(curl -fsSL "https://services.gradle.org/distributions/gradle-$version-wrapper.jar.sha256")
+          echo "$checksum  android/gradle/wrapper/gradle-wrapper.jar" | sha256sum -c -
+
+      - name: Copy the app content into the native project
+        run: npx --no-install cap sync android
+
+      - name: Build the app
+        working-directory: android
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          VERSION_CODE=$((RUN_NUMBER + 1000))
+          VERSION_NAME=$(node -p "require('../package.json').version")
+          export VERSION_CODE VERSION_NAME
+          echo "versionCode $VERSION_CODE, versionName $VERSION_NAME"
+          ./gradlew --no-daemon :app:assembleDebug :app:assembleRelease :app:bundleRelease
+
+      - name: Check what was built
+        run: python3 scripts/check-android.py
+
+      - name: Upload the app
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: android-build
+          path: |
+            android/app/build/outputs/apk/debug/*.apk
+            android/app/build/outputs/apk/release/*.apk
+            android/app/build/outputs/bundle/release/*.aab
+            android/app/build/intermediates/merged_manifests/release/**/AndroidManifest.xml
+          retention-days: 1
+          if-no-files-found: error

@@ -11,3 +11,6 @@ tailwindcss*.exe
 # תוכן האפליקציה נבנה מחדש בכל בנייה (scripts/build-www.sh), ולכן אינו נשמר
 www/
 node_modules/
+# תוצרי לוואי של פייתון
+__pycache__/
+*.pyc
