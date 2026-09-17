@@ -16,7 +16,24 @@ import sys
 import zipfile
 from pathlib import Path
 
-ALLOWED_PERMISSIONS = {'android.permission.INTERNET'}
+APP_ID = 'io.github.gnet100.thinkingstars'
+
+# ההרשאות שאנחנו מצפים להן, ולמה כל אחת כאן. כל הרשאה אחרת מפילה את הבנייה
+ALLOWED_PERMISSIONS = {
+    'android.permission.INTERNET',                 # הרכישה מול גוגל
+    'android.permission.ACCESS_NETWORK_STATE',     # ספריית החיוב בודקת חיבור
+    'com.android.vending.BILLING',                 # ספריית החיוב
+    # AndroidX מגדירה לעצמה הרשאת חתימה פנימית, ולא מבקשת שום דבר מהמשתמש
+    f'{APP_ID}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION',
+}
+
+# רכיבים שהמערכת יכולה לפנות אליהם. במניפסט המאוחד השמות מלאים
+ALLOWED_EXPORTED = {
+    f'activity {APP_ID}.MainActivity',                              # מסך המשחק, במניפסט המאוחד
+    'activity .MainActivity',                                       # אותו מסך, כפי שהוא כתוב במקור
+    'receiver androidx.profileinstaller.ProfileInstallReceiver',    # מוגן בהרשאת DUMP של המערכת
+}
+
 NS = '{http://schemas.android.com/apk/res/android}'
 
 
@@ -45,17 +62,19 @@ def check_manifest(path: Path, problems: list) -> None:
     if app.get(f'{NS}debuggable') == 'true':
         problems.append('the release build is debuggable')
 
-    exported = []
+    exported = set()
     for kind in ('activity', 'service', 'receiver', 'provider', 'activity-alias'):
         for element in app.findall(kind):
             if element.get(f'{NS}exported') == 'true':
-                exported.append(f"{kind} {element.get(f'{NS}name')}")
-    if exported != ['activity .MainActivity']:
-        problems.append(f'exported components are {exported}, expected only the launcher activity')
+                exported.add(f"{kind} {element.get(f'{NS}name')}")
+    for extra in sorted(exported - ALLOWED_EXPORTED):
+        problems.append(f'unexpected exported component: {extra}')
 
-    main = app.find('activity')
-    if main is not None and main.get(f'{NS}screenOrientation') != 'portrait':
-        problems.append('the activity is not locked to portrait')
+    ours = [a for a in app.findall('activity') if (a.get(f'{NS}name') or '').endswith('MainActivity')]
+    if len(ours) != 1:
+        problems.append(f'expected exactly one MainActivity, found {len(ours)}')
+    elif ours[0].get(f'{NS}screenOrientation') != 'portrait':
+        problems.append('the game activity is not locked to portrait')
 
 
 def check_bundle(path: Path, problems: list) -> None:
