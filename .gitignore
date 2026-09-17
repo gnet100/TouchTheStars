@@ -8,3 +8,6 @@ Thumbs.db
 *.pem
 # הקובץ העצמאי של Tailwind יושב מחוץ למאגר
 tailwindcss*.exe
+# תוכן האפליקציה נבנה מחדש בכל בנייה (scripts/build-www.sh), ולכן אינו נשמר
+www/
+node_modules/

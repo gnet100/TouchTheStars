@@ -1,0 +1,14 @@
+{
+  "appId": "io.github.gnet100.thinkingstars",
+  "appName": "Thinking Stars",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https",
+    "allowNavigation": []
+  },
+  "android": {
+    "allowMixedContent": false,
+    "useLegacyBridge": false,
+    "backgroundColor": "#02040a"
+  }
+}

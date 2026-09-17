@@ -1,0 +1,15 @@
+# סופי שורה אחידים: LF במאגר ובתיקיית העבודה, כדי שבדיקות שמשוות קבצים לא ייכשלו
+# בגלל ההבדל בין ווינדוס ללינוקס
+* text=auto eol=lf
+
+# gradlew רץ בלינוקס, וקובץ ה-bat בווינדוס
+gradlew text eol=lf
+*.bat text eol=crlf
+
+# קבצים בינאריים: לא נוגעים בהם
+*.png binary
+*.ico binary
+*.woff2 binary
+*.jar binary
+*.keystore binary
+*.p12 binary

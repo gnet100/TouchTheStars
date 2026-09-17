@@ -1,0 +1,65 @@
+# יצירה ראשונית של פרויקט האנדרואיד, בענן בלבד.
+#
+# למה בענן: במחשב אין Node ואין npm, וזו החלטת אבטחה. קוד שרץ בזמן התקנה יכול לגנוב אסימונים
+# ומפתחות, ולכן כל npm רץ כאן, עם --ignore-scripts.
+#
+# רץ ידנית, פעם אחת. הפלט הוא קובץ להורדה עם android/, package.json ו-package-lock.json,
+# ומשם הם נכנסים למאגר. מכאן והלאה כל בנייה משתמשת ב-npm ci --ignore-scripts.
+#
+# כל הרכיבים כאן הם של גיטהאב עצמה, ונעולים ל-commit מדויק, כפי שמדיניות המאגר דורשת.
+name: Bootstrap Android project
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node 22 (Capacitor 8 requires 22 or newer)
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+
+      - name: Build the app content (www)
+        run: sh scripts/build-www.sh
+
+      - name: Install Capacitor and the purchase plugin, exact versions, no install scripts
+        run: |
+          npm install --save-exact --ignore-scripts \
+            @capacitor/core@8.5.2 \
+            @capacitor/cli@8.5.2 \
+            @capacitor/android@8.5.2 \
+            @capacitor/app@8.1.1 \
+            @capgo/native-purchases@8.7.0 \
+            tailwindcss@3.4.19
+
+      - name: Create the Android project
+        run: npx --no-install cap add android          # לא מוריד כלום שלא הותקן קודם
+
+      - name: Report what was created
+        run: |
+          echo "--- dependencies"
+          node -e "console.log(JSON.stringify(require('./package.json').dependencies, null, 2))"
+          echo "--- files in android/: $(find android -type f | wc -l)"
+          find android -maxdepth 3 -name '*.gradle' -o -maxdepth 3 -name 'AndroidManifest.xml' | sort
+          echo "--- anything that looks like a secret or a key (should be empty)"
+          grep -rIl -e 'BEGIN .*PRIVATE KEY' -e 'storePassword' -e 'keyPassword' android || echo "none"
+
+      - name: Upload the generated project
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: android-bootstrap
+          path: |
+            android
+            package.json
+            package-lock.json
+          retention-days: 1
+          include-hidden-files: true    # android/.gitignore נחוץ לנו
+          if-no-files-found: error

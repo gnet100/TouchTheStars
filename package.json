@@ -1,0 +1,7 @@
+{
+  "name": "thinking-stars",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Thinking Stars, packaged for Android with Capacitor. The website itself needs no build step.",
+  "license": "UNLICENSED"
+}
