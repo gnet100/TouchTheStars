@@ -1,10 +1,14 @@
 # בניית אפליקציית האנדרואיד, בענן בלבד.
 #
-# רץ ידנית. מייצר שלושה דברים: APK לבדיקה בטלפון, APK ו-AAB לא חתומים של גרסת הפרסום,
-# והמניפסט המאוחד שעליו רצות הבדיקות.
+# רץ ידנית, בשני שלבים:
+# 1. build: בונה APK לבדיקה, APK ו-AAB לא חתומים של גרסת הפרסום, ואת המניפסט המאוחד שעליו רצות
+#    הבדיקות. כאן רצים npm ו-gradle עם כל הספריות שלהם, ולכן **אין כאן שום סוד**.
+# 2. sign: חותם את ה-AAB (להעלאה לגוגל) ואת ה-APK של הפרסום (לבדיקה בטלפון) במפתח ההעלאה.
+#    רצים כאן רק כלים של ג'אווה ושל אנדרואיד שמותקנים בשרת, בלי קוד מהמאגר ובלי ספריות.
+#    הסודות שייכים לסביבה 'release', שנפתחת רק לענף main. המפתח נוצר ב-scripts/make-upload-key.py.
 #
-# החתימה האמיתית תתווסף בשלב ו, כשייווצר מפתח ההעלאה. עד אז ה-APK לבדיקה חתום במפתח
-# הזמני של gradle, ולכן בכל בנייה הוא חתום אחרת: לפני התקנה של גרסה חדשה מסירים את הקודמת.
+# ה-APK לבדיקה חתום במפתח הזמני של gradle, ולכן בכל בנייה הוא חתום אחרת: לפני התקנה של גרסה
+# חדשה מסירים את הקודמת. גם בין ה-APK הזה לבין ה-APK החתום במפתח ההעלאה צריך להסיר.
 #
 # ‏versionCode הוא מספר ההרצה של התהליך הזה ועוד 1000. שינוי שם הקובץ מאפס את המונה,
 # וגוגל דוחה העלאה עם מספר נמוך מקודמו, ולכן לא משנים את שמו.
@@ -90,4 +94,95 @@ jobs:
             android/app/build/outputs/bundle/release/*.aab
             android/app/build/intermediates/merged_manifests/release/**/AndroidManifest.xml
           retention-days: 1
+          if-no-files-found: error
+
+  sign:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: release
+    env:
+      # טביעת האצבע (SHA-256) של התעודה של מפתח ההעלאה. היא ציבורית, ונשמרת כאן כדי שחתימה במפתח
+      # אחר, למשל אחרי החלפה בטעות של הסוד, תיכשל מיד ולא תגיע לגוגל
+      UPLOAD_CERT_SHA256: '83:FF:2C:DE:CE:93:0D:1B:08:4E:C5:CF:ED:11:2F:B1:F8:CA:01:80:05:C5:38:99:42:A4:22:A7:0A:7A:12:EC'
+    steps:
+      - name: Download the unsigned build
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: android-build
+          path: build
+
+      - name: Sign the bundle and the release APK with the upload key
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_B64 }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          set -eu
+          if [ -z "$KEYSTORE_B64" ] || [ -z "$KEY_PASSWORD" ]; then
+            echo "The upload key secrets are missing. Run scripts/make-upload-key.py first." >&2
+            exit 1
+          fi
+          export PATH="$JAVA_HOME_21_X64/bin:$PATH"
+          tools=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          echo "java $(java -version 2>&1 | head -1), build-tools $(basename "$tools")"
+
+          ks="$RUNNER_TEMP/upload.p12"
+          trap 'rm -f "$ks" "$RUNNER_TEMP/aligned.apk"' EXIT
+          printf '%s' "$KEYSTORE_B64" | base64 -d > "$ks"
+
+          # בדיוק קובץ אחד מכל סוג (בנתיבים שבונה gradle אין רווחים)
+          set -- $(find build -name app-release.aab)
+          [ $# = 1 ] || { echo "expected one release bundle, found $#" >&2; exit 1; }
+          aab=$1
+          set -- $(find build -name app-release-unsigned.apk)
+          [ $# = 1 ] || { echo "expected one release APK, found $#" >&2; exit 1; }
+          apk=$1
+
+          name="thinking-stars-v$((RUN_NUMBER + 1000))"
+          mkdir -p signed
+          # AAB נחתם ב-jarsigner, כמו שגוגל מתעדת להעלאה
+          jarsigner -keystore "$ks" -storetype PKCS12 -storepass:env KEY_PASSWORD -keypass:env KEY_PASSWORD \
+            -sigalg SHA256withRSA -digestalg SHA-256 -signedjar "signed/$name.aab" "$aab" upload
+          # APK: קודם יישור, ואחר כך חתימה. חתימה לפני יישור נשברת
+          "$tools/zipalign" -f 4 "$apk" "$RUNNER_TEMP/aligned.apk"
+          "$tools/apksigner" sign --ks "$ks" --ks-type PKCS12 --ks-key-alias upload \
+            --ks-pass env:KEY_PASSWORD --key-pass env:KEY_PASSWORD \
+            --out "signed/$name-release.apk" "$RUNNER_TEMP/aligned.apk"
+          rm -f signed/*.idsig
+          ls -l signed
+
+      - name: The signatures are valid and made with our upload key
+        run: |
+          set -eu
+          export PATH="$JAVA_HOME_21_X64/bin:$PATH"
+          tools=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          expected=$(printf '%s' "$UPLOAD_CERT_SHA256" | tr -d ':' | tr 'A-F' 'a-f')
+          if ! printf '%s' "$expected" | grep -Eq '^[0-9a-f]{64}$'; then
+            echo "UPLOAD_CERT_SHA256 is not set in this workflow. Copy it from upload-cert.pem." >&2
+            exit 1
+          fi
+          aab=$(ls signed/*.aab)
+          apk=$(ls signed/*-release.apk)
+
+          jarsigner -verify "$aab" | tee "$RUNNER_TEMP/jar.txt"
+          grep -q '^jar verified\.' "$RUNNER_TEMP/jar.txt"
+          signers=$(keytool -printcert -jarfile "$aab" | grep -c 'SHA256:')
+          aab_cert=$(keytool -printcert -jarfile "$aab" | sed -n 's/.*SHA256: //p' | tr -d ':' | tr 'A-F' 'a-f')
+
+          "$tools/apksigner" verify --verbose --print-certs "$apk" | tee "$RUNNER_TEMP/apk.txt"
+          grep -q 'Verified using v2 scheme (APK Signature Scheme v2): true' "$RUNNER_TEMP/apk.txt"
+          apk_cert=$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RUNNER_TEMP/apk.txt")
+
+          echo "expected $expected"
+          echo "bundle   $aab_cert ($signers signer)"
+          echo "apk      $apk_cert"
+          [ "$signers" = 1 ] && [ "$aab_cert" = "$expected" ] && [ "$apk_cert" = "$expected" ] || {
+            echo "the files were not signed with the expected upload key" >&2; exit 1; }
+
+      - name: Upload the signed app
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: android-signed
+          path: signed/
+          retention-days: 7
           if-no-files-found: error
