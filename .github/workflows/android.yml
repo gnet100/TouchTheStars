@@ -117,7 +117,7 @@ jobs:
           KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD }}
           RUN_NUMBER: ${{ github.run_number }}
         run: |
-          set -eu
+          set -euo pipefail
           if [ -z "$KEYSTORE_B64" ] || [ -z "$KEY_PASSWORD" ]; then
             echo "The upload key secrets are missing. Run scripts/make-upload-key.py first." >&2
             exit 1
@@ -153,7 +153,7 @@ jobs:
 
       - name: The signatures are valid and made with our upload key
         run: |
-          set -eu
+          set -euo pipefail
           export PATH="$JAVA_HOME_21_X64/bin:$PATH"
           tools=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
           expected=$(printf '%s' "$UPLOAD_CERT_SHA256" | tr -d ':' | tr 'A-F' 'a-f')
@@ -171,7 +171,10 @@ jobs:
 
           "$tools/apksigner" verify --verbose --print-certs "$apk" | tee "$RUNNER_TEMP/apk.txt"
           grep -q 'Verified using v2 scheme (APK Signature Scheme v2): true' "$RUNNER_TEMP/apk.txt"
-          apk_cert=$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RUNNER_TEMP/apk.txt")
+          grep -q '^Number of signers: 1$' "$RUNNER_TEMP/apk.txt"
+          # השורה נראית אחרת לפי שיטת החתימה ("Signer #1 certificate..." או "V3.0 Signer: certificate..."),
+          # ולכן אוספים את כל השורות, וכולן צריכות להיות אותה תעודה
+          apk_cert=$(sed -n 's/.*certificate SHA-256 digest: //p' "$RUNNER_TEMP/apk.txt" | sort -u)
 
           echo "expected $expected"
           echo "bundle   $aab_cert ($signers signer)"
