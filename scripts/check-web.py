@@ -4,13 +4,15 @@
 1. אין קוד שכתוב בתוך תגיות: לא סקריפט בתוך הדף, ולא מאפייני onclick וחבריהם.
    מדיניות האבטחה של הדף (CSP) חוסמת אותם, וכפתור כזה פשוט לא היה עובד.
 2. כל קובץ שהאתר טוען נמצא ברשימת השמירה של ה-service worker.
-3. תוכן האפליקציה (www) זהה לקובצי האתר.
+3. דף הפרטיות באתר (privacy.html) זהה למסך הפרטיות שבתוך האפליקציה.
+4. תוכן האפליקציה (www) זהה לקובצי האתר.
 
     python scripts/check-web.py            # על תיקיית הפרויקט
     python scripts/check-web.py --www      # גם על www, אחרי scripts/build-www.sh
 """
 import argparse
 import hashlib
+import importlib.util
 import re
 import sys
 from pathlib import Path
@@ -56,6 +58,15 @@ def main() -> int:
         if ref in ('manifest.json',) or ref in listed or ref.lstrip('./') in listed:
             continue
         bad.append(f'index.html loads {ref}, which the service worker does not precache')
+
+    # דף הפרטיות באתר חייב להיות זהה למסך הפרטיות שבתוך האפליקציה
+    spec = importlib.util.spec_from_file_location('make_privacy', ROOT / 'scripts' / 'make-privacy.py')
+    make_privacy = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(make_privacy)
+    page = (ROOT / 'privacy.html').read_text(encoding='utf-8') if (ROOT / 'privacy.html').exists() else ''
+    if page != make_privacy.render():
+        bad.append('privacy.html does not match the in-app privacy screen. Run scripts/make-privacy.py')
+    bad += check_page(page, 'privacy.html')
 
     if args.www:
         www = ROOT / 'www'
