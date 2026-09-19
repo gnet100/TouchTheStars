@@ -19,6 +19,8 @@
   <link rel="icon" href="favicon.ico" sizes="any"/>
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"/>
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+  <!-- שפה וכיוון (עברית או אנגלית), לפני שהדף מוצג -->
+  <script src="js/i18n.js"></script>
   <!-- גופנים מקומיים וגופן אייקונים מצומצם. אייקון חדש צריך להיכנס לרשימה שב-fonts/fonts.css -->
   <link rel="stylesheet" href="fonts/fonts.css"/>
   <style>
@@ -37,6 +39,11 @@
       75%, 100% { transform: scale(2); opacity: 0; }
     }
     .dot-ping { animation: slow-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite; }
+
+    /* באנגלית (משמאל לימין) החצים מתהפכים: "חזור" מצביע אחורה ו"המשך" קדימה */
+    [dir="ltr"] .rtl-flip { transform: scaleX(-1); }
+    /* באנגלית הדף מוסתר עד שהטקסטים הוחלפו (js/i18n.js), בלי הבהוב של הטקסט העברי */
+    .i18n-wait body { visibility: hidden; }
 
     /* בלי "משיכה לרענון" בטעות באמצע משחק */
     html, body { overscroll-behavior: none; }
@@ -138,35 +145,37 @@
           <span>THINKING STARS</span>
         </h2>
         <div class="w-full my-2 inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-secondary-container/30 border border-secondary/40 text-secondary text-center shadow-md">
-          <span class="font-label-sm text-xs font-bold">מי שנשאר עם הכוכבית האחרונה — מפסיד!</span>
+          <span data-i18n="tagline" class="font-label-sm text-xs font-bold">מי שנשאר עם הכוכבית האחרונה — מפסיד!</span>
         </div>
       </div>
 
       <div class="w-full flex flex-col gap-4 my-auto">
         <button type="button" data-action="selectGameMode" data-arg="pvp" class="w-full rounded-2xl bg-[#171c2b] border-2 border-white/10 hover:border-primary p-3 flex flex-col items-center gap-3 transition-all active:scale-95 group">
-          <img src="images/two-players.png" alt="שני שחקנים" class="w-24 h-24 rounded-full shadow-[0_0_18px_rgba(76,215,246,0.45)] group-hover:shadow-[0_0_26px_rgba(76,215,246,0.8)] transition-all select-none" draggable="false"/>
+          <img src="images/two-players.png" alt="שני שחקנים" data-i18n-alt="modePvp" class="w-24 h-24 rounded-full shadow-[0_0_18px_rgba(76,215,246,0.45)] group-hover:shadow-[0_0_26px_rgba(76,215,246,0.8)] transition-all select-none" draggable="false"/>
           <div class="flex items-center gap-2 text-primary font-black text-base">
             <span class="material-symbols-outlined text-[20px]">group</span>
-            <span>שני שחקנים</span>
+            <span data-i18n="modePvp">שני שחקנים</span>
           </div>
         </button>
 
         <button type="button" data-action="selectGameMode" data-arg="ai" class="w-full rounded-2xl bg-[#171c2b] border-2 border-white/10 hover:border-primary p-3 flex flex-col items-center gap-3 transition-all active:scale-95 group">
-          <img src="images/vs-computer.png" alt="שחקן מול מחשב" class="w-24 h-24 rounded-full shadow-[0_0_18px_rgba(76,215,246,0.45)] group-hover:shadow-[0_0_26px_rgba(76,215,246,0.8)] transition-all select-none" draggable="false"/>
+          <img src="images/vs-computer.png" alt="שחקן מול מחשב" data-i18n-alt="modeAi" class="w-24 h-24 rounded-full shadow-[0_0_18px_rgba(76,215,246,0.45)] group-hover:shadow-[0_0_26px_rgba(76,215,246,0.8)] transition-all select-none" draggable="false"/>
           <div class="flex items-center gap-2 text-primary font-black text-base">
             <span class="material-symbols-outlined text-[20px]">smart_toy</span>
-            <span>שחקן מול מחשב</span>
+            <span data-i18n="modeAi">שחקן מול מחשב</span>
           </div>
         </button>
       </div>
       <div id="home-bottom-row" class="w-full flex items-center justify-between mt-6 mb-4">
         <!-- צליל: פעיל, או כבוי עם קו אלכסוני אדום -->
-        <button id="sound-btn" type="button" data-action="toggleSound" title="צליל פעיל" aria-label="צליל" aria-pressed="true" class="relative w-8 h-8 shrink-0 flex items-center justify-center text-primary/90 hover:text-primary hover:scale-110 active:scale-95 transition-all">
+        <button id="sound-btn" type="button" data-action="toggleSound" title="צליל פעיל" aria-label="צליל" data-i18n-aria="sound" aria-pressed="true" class="relative w-8 h-8 shrink-0 flex items-center justify-center text-primary/90 hover:text-primary hover:scale-110 active:scale-95 transition-all">
           <span id="sound-icon" class="material-symbols-outlined text-[22px] transition-opacity">volume_up</span>
           <span id="sound-off-line" class="absolute w-7 h-[3px] rounded-full bg-red-500 rotate-45 pointer-events-none shadow-[0_0_0_1.5px_#0d111d] hidden"></span>
         </button>
+        <!-- שפה: מציג את השפה השנייה, ולחיצה עוברת אליה (שומרת וטוענת מחדש, js/i18n.js) -->
+        <button id="lang-btn" type="button" data-action="toggleLang" aria-label="English" data-i18n="langSwitch" data-i18n-aria="langSwitchAria" class="px-1 py-1 text-sm font-bold text-primary/90 hover:text-primary hover:scale-110 active:scale-95 transition-all">English</button>
         <button type="button" data-action="goToStep" data-arg="5" class="px-1 py-1 flex items-center gap-1.5 text-sm font-bold text-primary/90 hover:text-primary hover:scale-110 active:scale-95 transition-all">
-          <span>הוראות</span>
+          <span data-i18n="rules">הוראות</span>
           <span class="material-symbols-outlined text-[18px]">menu_book</span>
         </button>
       </div>
@@ -178,42 +187,42 @@
     <div class="w-[340px] h-[560px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/50 overflow-y-auto justify-between">
       <div class="w-full flex items-center justify-between border-b border-white/10 pb-2">
         <button type="button" data-action="goToStep" data-arg="1" class="text-xs text-primary font-bold flex items-center gap-1 hover:scale-110 transition-transform">
-          <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
-          <span>חזור</span>
+          <span class="material-symbols-outlined rtl-flip text-[16px]">arrow_forward</span>
+          <span data-i18n="back">חזור</span>
         </button>
-        <h2 class="font-game-title text-lg font-black text-primary text-center tracking-wider">הוראות</h2>
+        <h2 class="font-game-title text-lg font-black text-primary text-center tracking-wider" data-i18n="rulesTitle">הוראות</h2>
         <div class="w-12"></div>
       </div>
 
-      <div class="w-full flex-1 overflow-y-auto my-2 flex flex-col gap-2 text-right">
+      <div class="w-full flex-1 overflow-y-auto my-2 flex flex-col gap-2 text-start">
         <div class="flex flex-col items-center gap-1 text-center">
-          <p class="text-xs text-on-surface-variant font-bold leading-relaxed">משחק חשיבה מתמטי עתיק. חוקים פשוטים<br/>עומק אסטרטגי</p>
-          <p class="text-sm text-primary font-black">המטרה: להשאיר ליריב את הכוכבית האחרונה</p>
+          <p class="text-xs text-on-surface-variant font-bold leading-relaxed" data-i18n="rulesIntro">משחק חשיבה מתמטי עתיק. חוקים פשוטים<br/>עומק אסטרטגי</p>
+          <p class="text-sm text-primary font-black" data-i18n="rulesGoal">המטרה: להשאיר ליריב את הכוכבית האחרונה</p>
         </div>
 
         <article class="rounded-xl bg-[#171c2b] border border-white/10 p-2.5 flex flex-col gap-1">
-          <h3 class="text-sm font-black text-primary">1. הלוח</h3>
-          <p class="text-xs text-on-surface-variant font-bold leading-relaxed">פירמידה של כוכביות, 2 עד 6 שורות לבחירתכם (ברירת המחדל: 5 שורות, 15 כוכביות).</p>
+          <h3 class="text-sm font-black text-primary" data-i18n="rulesBoardTitle">1. הלוח</h3>
+          <p class="text-xs text-on-surface-variant font-bold leading-relaxed" data-i18n="rulesBoard">פירמידה של כוכביות, 2 עד 6 שורות לבחירתכם (ברירת המחדל: 5 שורות, 15 כוכביות).</p>
         </article>
 
         <article class="rounded-xl bg-[#171c2b] border border-white/10 p-2.5 flex flex-col gap-1">
-          <h3 class="text-sm font-black text-primary">2. מהלך התור</h3>
-          <p class="text-xs text-on-surface-variant font-bold leading-relaxed">בכל תור בוחרים כוכבית אחת או יותר, מאותה שורה בלבד, וברצף של כוכביות זוהרות (כוכבית כבויה עוצרת את הרצף), ולוחצים "שחק". הכוכביות שנבחרו נעלמות.</p>
+          <h3 class="text-sm font-black text-primary" data-i18n="rulesTurnTitle">2. מהלך התור</h3>
+          <p class="text-xs text-on-surface-variant font-bold leading-relaxed" data-i18n="rulesTurn">בכל תור בוחרים כוכבית אחת או יותר, מאותה שורה בלבד, וברצף של כוכביות זוהרות (כוכבית כבויה עוצרת את הרצף), ולוחצים "שחק". הכוכביות שנבחרו נעלמות.</p>
         </article>
 
         <article class="rounded-xl bg-[#171c2b] border border-white/10 p-2.5 flex flex-col gap-1">
-          <h3 class="text-sm font-black text-primary">3. מי שנשאר עם הכוכבית האחרונה – מפסיד!</h3>
-          <p class="text-xs text-on-surface-variant font-bold leading-relaxed">כשנשארת כוכבית אחת בלבד היא מהבהבת באדום, והשחקן שתורו לקחת אותה מפסיד.</p>
+          <h3 class="text-sm font-black text-primary" data-i18n="rulesLastTitle">3. מי שנשאר עם הכוכבית האחרונה – מפסיד!</h3>
+          <p class="text-xs text-on-surface-variant font-bold leading-relaxed" data-i18n="rulesLast">כשנשארת כוכבית אחת בלבד היא מהבהבת באדום, והשחקן שתורו לקחת אותה מפסיד.</p>
         </article>
       </div>
 
       <div class="w-full flex gap-2">
         <button data-action="goToStep" data-arg="1" class="flex-1 h-11 rounded-xl bg-[#171c2b] text-on-surface border border-white/20 flex items-center justify-center gap-2 active:scale-95 hover:scale-105 transition-all font-bold text-base">
-          <span class="material-symbols-outlined text-[20px] text-tertiary">arrow_forward</span>
-          <span>חזור</span>
+          <span class="material-symbols-outlined rtl-flip text-[20px] text-tertiary">arrow_forward</span>
+          <span data-i18n="back">חזור</span>
         </button>
         <button data-action="goToStep" data-arg="6" class="flex-1 h-11 rounded-xl bg-primary text-on-primary flex items-center justify-center gap-2 shadow-xl active:scale-95 hover:scale-105 transition-all font-bold text-base">
-          <span>הדגמה</span>
+          <span data-i18n="demo">הדגמה</span>
           <span class="material-symbols-outlined text-[20px]">play_circle</span>
         </button>
       </div>
@@ -225,34 +234,34 @@
     <div class="w-[340px] h-[560px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/50 overflow-y-auto justify-between">
       <div class="w-full flex items-center justify-between border-b border-white/10 pb-2">
         <button type="button" data-action="goToStep" data-arg="5" class="text-xs text-primary font-bold flex items-center gap-1 hover:scale-110 transition-transform">
-          <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
-          <span>חזור</span>
+          <span class="material-symbols-outlined rtl-flip text-[16px]">arrow_forward</span>
+          <span data-i18n="back">חזור</span>
         </button>
-        <h2 class="font-game-title text-lg font-black text-primary text-center tracking-wider">הדגמה</h2>
+        <h2 class="font-game-title text-lg font-black text-primary text-center tracking-wider" data-i18n="demo">הדגמה</h2>
         <div class="w-12"></div>
       </div>
 
       <div class="w-full flex flex-col gap-2 mt-3">
         <div class="w-full flex items-center justify-between">
-          <span id="demo-player" class="text-[11px] font-black px-2 py-0.5 rounded-full border">פתיחה</span>
+          <span id="demo-player" class="text-[11px] font-black px-2 py-0.5 rounded-full border" data-i18n="demoOpening">פתיחה</span>
           <span id="demo-counter" class="text-[11px] font-bold text-on-surface-variant"></span>
         </div>
-        <p id="demo-text" class="w-full min-h-[3.25rem] text-sm font-bold text-on-surface leading-relaxed text-right"></p>
+        <p id="demo-text" class="w-full min-h-[3.25rem] text-sm font-bold text-on-surface leading-relaxed text-start"></p>
       </div>
 
       <div id="demo-board" class="w-full flex flex-col items-center gap-1.5 py-3 my-auto rounded-2xl bg-black/20 border border-white/10"></div>
 
       <div class="w-full flex items-center justify-between gap-2 mt-3">
         <button type="button" data-action="demoStep" data-arg="-1" class="flex-1 h-11 rounded-xl bg-[#171c2b] border border-white/20 flex items-center justify-center gap-1 font-bold text-sm active:scale-95 hover:scale-105 transition-all">
-          <span class="material-symbols-outlined text-[18px] text-tertiary">arrow_forward</span>
-          <span>הקודם</span>
+          <span class="material-symbols-outlined rtl-flip text-[18px] text-tertiary">arrow_forward</span>
+          <span data-i18n="prev">הקודם</span>
         </button>
-        <button type="button" data-action="demoTogglePlay" title="עצור / המשך" aria-label="עצור / המשך" class="w-14 h-11 shrink-0 rounded-xl bg-primary text-on-primary flex items-center justify-center shadow-md active:scale-95 hover:scale-105 transition-all">
+        <button type="button" data-action="demoTogglePlay" title="עצור / המשך" aria-label="עצור / המשך" data-i18n-title="pauseResume" data-i18n-aria="pauseResume" class="w-14 h-11 shrink-0 rounded-xl bg-primary text-on-primary flex items-center justify-center shadow-md active:scale-95 hover:scale-105 transition-all">
           <span id="demo-play-icon" class="material-symbols-outlined text-[24px]">pause</span>
         </button>
         <button type="button" data-action="demoStep" data-arg="1" class="flex-1 h-11 rounded-xl bg-[#171c2b] border border-white/20 flex items-center justify-center gap-1 font-bold text-sm active:scale-95 hover:scale-105 transition-all">
-          <span>הבא</span>
-          <span class="material-symbols-outlined text-[18px] text-tertiary">arrow_back</span>
+          <span data-i18n="next">הבא</span>
+          <span class="material-symbols-outlined rtl-flip text-[18px] text-tertiary">arrow_back</span>
         </button>
       </div>
     </div>
@@ -263,26 +272,26 @@
     <div class="w-[340px] h-[560px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/50 overflow-y-auto justify-between">
       <div class="w-full flex items-center justify-between border-b border-white/10 pb-2">
         <button type="button" data-action="goToStep" data-arg="1" class="text-xs text-primary font-bold flex items-center gap-1 hover:scale-110 transition-transform">
-          <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
-          <span>חזור</span>
+          <span class="material-symbols-outlined rtl-flip text-[16px]">arrow_forward</span>
+          <span data-i18n="back">חזור</span>
         </button>
-        <h2 class="font-game-title text-lg font-black text-primary text-center tracking-wider">רמת קושי</h2>
+        <h2 class="font-game-title text-lg font-black text-primary text-center tracking-wider" data-i18n="difficulty">רמת קושי</h2>
         <div class="w-12"></div>
       </div>
 
-      <div class="w-full flex flex-col gap-2 text-right my-auto">
+      <div class="w-full flex flex-col gap-2 text-start my-auto">
         <div class="flex flex-col gap-2 w-full">
-          <button type="button" data-action="setAiDiff" data-arg="1" id="diff-btn-1" class="w-full h-10 rounded-xl bg-primary-container text-on-primary border border-primary font-bold text-xs shadow-md">1. מתחיל</button>
-          <button type="button" data-action="setAiDiff" data-arg="2" id="diff-btn-2" class="w-full h-10 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10">2. חובבן</button>
-          <button type="button" data-action="setAiDiff" data-arg="3" id="diff-btn-3" class="w-full h-10 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10">3. בינוני</button>
-          <button type="button" data-action="setAiDiff" data-arg="4" id="diff-btn-4" class="w-full h-10 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10">4. מתקדם</button>
-          <button type="button" data-action="setAiDiff" data-arg="5" id="diff-btn-5" class="w-full h-10 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10">5. אלוף</button>
+          <button type="button" data-action="setAiDiff" data-arg="1" id="diff-btn-1" class="w-full h-10 rounded-xl bg-primary-container text-on-primary border border-primary font-bold text-xs shadow-md" data-i18n="level1">1. מתחיל</button>
+          <button type="button" data-action="setAiDiff" data-arg="2" id="diff-btn-2" class="w-full h-10 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10" data-i18n="level2">2. חובבן</button>
+          <button type="button" data-action="setAiDiff" data-arg="3" id="diff-btn-3" class="w-full h-10 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10" data-i18n="level3">3. בינוני</button>
+          <button type="button" data-action="setAiDiff" data-arg="4" id="diff-btn-4" class="w-full h-10 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10" data-i18n="level4">4. מתקדם</button>
+          <button type="button" data-action="setAiDiff" data-arg="5" id="diff-btn-5" class="w-full h-10 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10" data-i18n="level5">5. אלוף</button>
         </div>
       </div>
 
       <button data-action="goToStep" data-arg="3" class="w-full h-11 rounded-xl bg-primary text-on-primary font-headline-md flex items-center justify-center gap-2 shadow-xl active:scale-95 transition-all font-bold text-base">
-        <span>המשך</span>
-        <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+        <span data-i18n="continue">המשך</span>
+        <span class="material-symbols-outlined rtl-flip text-[20px]">arrow_back</span>
       </button>
     </div>
   </div>
@@ -292,49 +301,49 @@
     <div class="w-[340px] h-[560px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/50 overflow-y-auto justify-between">
       <div class="w-full flex items-center justify-between border-b border-white/10 pb-2">
         <button type="button" data-action="goBackFromStep3" class="text-xs text-primary font-bold flex items-center gap-1 hover:scale-110 transition-transform">
-          <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
-          <span>חזור</span>
+          <span class="material-symbols-outlined rtl-flip text-[16px]">arrow_forward</span>
+          <span data-i18n="back">חזור</span>
         </button>
-        <h2 class="font-game-title text-lg font-black text-primary text-center tracking-wider">הגדרות השחקנים</h2>
+        <h2 class="font-game-title text-lg font-black text-primary text-center tracking-wider" data-i18n="playersTitle">הגדרות השחקנים</h2>
         <div class="w-12"></div>
       </div>
 
       <div class="w-full flex flex-col justify-start pt-4 gap-8 mb-auto">
-        <div class="flex flex-col gap-3 text-right">
+        <div class="flex flex-col gap-3 text-start">
           <label class="text-sm font-bold text-player1 flex items-center gap-1">
             <span class="material-symbols-outlined text-[18px]">person</span>
-            <span>שם שחקן 1:</span>
+            <span data-i18n="p1NameLabel">שם שחקן 1:</span>
           </label>
-          <input id="setup-p1-name" type="text" maxlength="12" value="שחקן 1" class="w-full h-11 px-3.5 rounded-xl bg-[#171c2b] border border-player1/60 text-on-surface focus:outline-none focus:border-player1 text-base font-bold"/>
+          <input id="setup-p1-name" type="text" maxlength="12" value="שחקן 1" data-i18n-value="p1" class="w-full h-11 px-3.5 rounded-xl bg-[#171c2b] border border-player1/60 text-on-surface focus:outline-none focus:border-player1 text-base font-bold"/>
         </div>
 
-        <div id="p2-name-box" class="flex flex-col gap-3 text-right hidden">
+        <div id="p2-name-box" class="flex flex-col gap-3 text-start hidden">
           <label class="text-sm font-bold text-secondary flex items-center gap-1">
             <span class="material-symbols-outlined text-[18px]">person_outline</span>
-            <span>שם שחקן 2:</span>
+            <span data-i18n="p2NameLabel">שם שחקן 2:</span>
           </label>
-          <input id="setup-p2-name" type="text" maxlength="12" value="שחקן 2" class="w-full h-11 px-3.5 rounded-xl bg-[#171c2b] border border-secondary/60 text-on-surface focus:outline-none focus:border-secondary text-base font-bold"/>
+          <input id="setup-p2-name" type="text" maxlength="12" value="שחקן 2" data-i18n-value="p2" class="w-full h-11 px-3.5 rounded-xl bg-[#171c2b] border border-secondary/60 text-on-surface focus:outline-none focus:border-secondary text-base font-bold"/>
         </div>
 
         <!-- קו דק מפריד בין שמות השחקנים לבחירת המתחיל -->
-        <div class="flex flex-col gap-3 text-right border-t border-white/10 pt-4 -mt-4">
-          <label class="text-lg font-bold text-on-surface-variant">מי מתחיל ראשון?</label>
+        <div class="flex flex-col gap-3 text-start border-t border-white/10 pt-4 -mt-4">
+          <label class="text-lg font-bold text-on-surface-variant" data-i18n="whoStartsFirst">מי מתחיל ראשון?</label>
           <div class="flex items-center justify-between gap-2">
             <button type="button" data-action="setStarterPlayer" data-arg="1" id="starter-btn-1" class="flex-1 h-11 rounded-xl bg-primary-container text-on-primary border border-primary font-bold text-xs shadow-md flex items-center justify-center gap-1.5">
               <span class="material-symbols-outlined text-[18px]">person</span>
-              <span>שחקן 1</span>
+              <span data-i18n="p1">שחקן 1</span>
             </button>
             <button type="button" data-action="setStarterPlayer" data-arg="2" id="starter-btn-2" class="flex-1 h-11 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-xs hover:bg-white/10 flex items-center justify-center gap-1.5">
               <span id="starter-icon-2" class="material-symbols-outlined text-[18px]">smart_toy</span>
-              <span id="starter-label-2">מחשב</span>
+              <span id="starter-label-2" data-i18n="computer">מחשב</span>
             </button>
           </div>
         </div>
       </div>
 
       <button data-action="goToStep" data-arg="4" class="w-full h-11 rounded-xl bg-primary text-on-primary font-headline-md flex items-center justify-center gap-2 shadow-xl active:scale-95 transition-all font-bold text-base mt-4">
-        <span>המשך</span>
-        <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+        <span data-i18n="continue">המשך</span>
+        <span class="material-symbols-outlined rtl-flip text-[20px]">arrow_back</span>
       </button>
     </div>
   </div>
@@ -344,18 +353,18 @@
     <div class="w-[340px] h-[560px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/50 overflow-y-auto justify-between">
       <div class="w-full flex items-center justify-between border-b border-white/10 pb-2">
         <button type="button" data-action="goToStep" data-arg="3" class="text-xs text-primary font-bold flex items-center gap-1 hover:scale-110 transition-transform">
-          <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
-          <span>חזור</span>
+          <span class="material-symbols-outlined rtl-flip text-[16px]">arrow_forward</span>
+          <span data-i18n="back">חזור</span>
         </button>
-        <h2 class="font-game-title text-lg font-black text-primary text-center tracking-wider">גודל הלוח</h2>
+        <h2 class="font-game-title text-lg font-black text-primary text-center tracking-wider" data-i18n="boardSize">גודל הלוח</h2>
         <div class="w-12"></div>
       </div>
 
       <div class="w-full flex flex-col items-center justify-center my-auto space-y-3">
         <div id="pyramid-preview-container" class="w-full bg-[#171c2b] rounded-2xl p-4 border border-white/10 flex flex-col items-center justify-center space-y-1.5 min-h-[160px]"></div>
 
-        <div class="w-full flex flex-col gap-2 text-right">
-          <label class="text-sm font-bold text-on-surface-variant text-center">מספר שורות פירמידה:</label>
+        <div class="w-full flex flex-col gap-2 text-start">
+          <label class="text-sm font-bold text-on-surface-variant text-center" data-i18n="rowsLabel">מספר שורות פירמידה:</label>
           <div class="flex items-center justify-between gap-1.5 w-full">
             <button type="button" data-action="selectRows" data-arg="2" id="row-btn-2" class="row-sel-btn flex-1 h-12 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-base">2</button>
             <button type="button" data-action="selectRows" data-arg="3" id="row-btn-3" class="row-sel-btn flex-1 h-12 rounded-xl bg-[#171c2b] border border-white/20 font-bold text-base">3</button>
@@ -368,7 +377,7 @@
 
       <button data-action="applySetupAndStart" class="w-full h-12 rounded-xl bg-primary text-on-primary font-headline-md flex items-center justify-center gap-2 shadow-xl active:scale-95 transition-all font-bold text-base">
         <span class="material-symbols-outlined text-[22px]">play_arrow</span>
-        <span>התחל משחק</span>
+        <span data-i18n="startGame">התחל משחק</span>
       </button>
     </div>
   </div>
@@ -416,16 +425,16 @@
         <div class="w-full flex flex-col items-center space-y-2 py-space-xs" id="board-container"></div>
 
         <div class="w-full flex items-center justify-between gap-3 mt-3 pt-2 border-t border-white/10">
-          <button id="restart-btn" type="button" data-action="undoOrRestart" title="התחל מחדש" aria-label="התחל מחדש" class="w-11 h-11 shrink-0 rounded-full bg-[#171c2b] text-on-surface border border-white/20 shadow-md flex items-center justify-center hover:bg-white/20 active:scale-95 transition-all cursor-pointer">
+          <button id="restart-btn" type="button" data-action="undoOrRestart" title="התחל מחדש" aria-label="התחל מחדש" data-i18n-aria="restart" class="w-11 h-11 shrink-0 rounded-full bg-[#171c2b] text-on-surface border border-white/20 shadow-md flex items-center justify-center hover:bg-white/20 active:scale-95 transition-all cursor-pointer">
             <span id="restart-icon" class="material-symbols-outlined text-[22px] text-tertiary">refresh</span>
           </button>
 
           <button id="commit-btn" type="button" data-action="commitMove" class="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-xl bg-primary-container text-on-primary shadow-md font-bold text-base hover:opacity-95 active:scale-98 transition-all cursor-pointer">
             <span class="material-symbols-outlined text-[18px]">play_arrow</span>
-            <span id="btn-play-text">שחק</span>
+            <span id="btn-play-text" data-i18n="play">שחק</span>
           </button>
 
-          <button id="home-btn" type="button" data-action="goToStep" data-arg="1" title="מסך הפתיחה" aria-label="מסך הפתיחה" class="w-11 h-11 shrink-0 rounded-full bg-[#171c2b] text-on-surface border border-white/20 shadow-md flex items-center justify-center hover:bg-white/20 active:scale-95 transition-all cursor-pointer">
+          <button id="home-btn" type="button" data-action="goToStep" data-arg="1" title="מסך הפתיחה" aria-label="מסך הפתיחה" data-i18n-title="homeScreen" data-i18n-aria="homeScreen" class="w-11 h-11 shrink-0 rounded-full bg-[#171c2b] text-on-surface border border-white/20 shadow-md flex items-center justify-center hover:bg-white/20 active:scale-95 transition-all cursor-pointer">
             <span class="material-symbols-outlined text-[22px] text-tertiary">home</span>
           </button>
         </div>
@@ -462,10 +471,10 @@
              והבחירה מתחילה סיבוב חדש עם אותה פירמידה ואותן הגדרות, והניקוד נשמר -->
         <button id="play-again-btn" type="button" data-action="playAgain" class="w-full h-11 rounded-xl bg-primary text-on-primary flex items-center justify-center gap-2 shadow-xl active:scale-95 hover:scale-105 transition-all font-bold text-base cursor-pointer">
           <span class="material-symbols-outlined text-[20px]">replay</span>
-          <span>שחק שוב</span>
+          <span data-i18n="playAgain">שחק שוב</span>
         </button>
         <div id="starter-choice" class="flex flex-col gap-2 w-full pt-1 hidden">
-          <p class="text-lg font-bold text-on-surface-variant">מי מתחיל?</p>
+          <p class="text-lg font-bold text-on-surface-variant" data-i18n="whoStarts">מי מתחיל?</p>
           <div class="flex gap-2 w-full">
             <button data-action="startNextRound" data-arg="1" class="flex-1 min-w-0 h-11 px-2 rounded-xl bg-player1 text-[#0b1b3a] flex items-center justify-center gap-1.5 shadow-xl active:scale-95 hover:scale-105 transition-all font-bold text-sm cursor-pointer">
               <span class="material-symbols-outlined text-[18px]">person</span>
@@ -480,7 +489,7 @@
 
         <button data-action="goToStartFromModal" class="w-full h-11 rounded-xl bg-[#171c2b] text-on-surface border border-white/20 font-headline-md flex items-center justify-center gap-2 hover:bg-white/15 active:scale-95 transition-all font-bold text-sm cursor-pointer">
           <span class="material-symbols-outlined text-[18px] text-tertiary">home</span>
-          <span>חזור להתחלה</span>
+          <span data-i18n="backToStart">חזור להתחלה</span>
         </button>
       </div>
     </div>
@@ -490,7 +499,7 @@
        בדפדפן <template> אינו מוצג, אינו נספר ואינו טוען כלום, ולכן האתר נשאר בדיוק כפי שהיה -->
   <template id="app-parts">
     <button id="privacy-link" type="button" data-action="goToStep" data-arg="7" class="px-1 py-1 flex items-center gap-1.5 text-sm font-bold text-primary/90 hover:text-primary hover:scale-110 active:scale-95 transition-all">
-      <span>פרטיות</span>
+      <span data-i18n="privacy">פרטיות</span>
       <span class="material-symbols-outlined text-[18px]">privacy_tip</span>
     </button>
 
@@ -501,13 +510,13 @@
           <span class="material-symbols-outlined text-[36px]">lock</span>
         </div>
 
-        <h2 class="font-game-title text-xl font-black text-primary tracking-wide">הגרסה המלאה</h2>
-        <p class="text-sm font-bold text-on-surface-variant leading-relaxed">נפתחות רמות 4 ו-5, ולוח של 6 שורות.</p>
+        <h2 class="font-game-title text-xl font-black text-primary tracking-wide" data-i18n="fullVersion">הגרסה המלאה</h2>
+        <p class="text-sm font-bold text-on-surface-variant leading-relaxed" data-i18n="fullVersionDesc">נפתחות רמות 4 ו-5, ולוח של 6 שורות.</p>
 
         <div class="w-full bg-[#171c2b] rounded-2xl p-3 border border-white/10 flex flex-col gap-1">
           <!-- המחיר מגיע מגוגל, ונכתב רק עם textContent. עד שהוא מגיע מוצג המחיר הקבוע -->
           <span id="lock-price" class="text-lg font-black text-primary">4.90 ₪</span>
-          <span class="text-xs font-bold text-on-surface-variant">תשלום חד-פעמי דרך Google Play</span>
+          <span class="text-xs font-bold text-on-surface-variant" data-i18n="oneTimePayment">תשלום חד-פעמי דרך Google Play</span>
         </div>
 
         <p id="lock-status" class="text-xs font-bold text-on-surface-variant leading-relaxed"></p>
@@ -515,14 +524,14 @@
         <div class="flex flex-col gap-2 w-full">
           <button id="lock-buy" type="button" data-action="buyUnlock" class="w-full h-11 rounded-xl bg-primary text-on-primary flex items-center justify-center gap-2 shadow-xl active:scale-95 hover:scale-105 transition-all font-bold text-base cursor-pointer">
             <span class="material-symbols-outlined text-[20px]">lock_open</span>
-            <span>לרכישה</span>
+            <span data-i18n="buy">לרכישה</span>
           </button>
           <button id="lock-restore" type="button" data-action="restoreUnlock" class="w-full h-11 rounded-xl bg-[#171c2b] text-on-surface border border-white/20 flex items-center justify-center gap-2 active:scale-95 hover:scale-105 transition-all font-bold text-sm cursor-pointer">
             <span class="material-symbols-outlined text-[18px] text-tertiary">restore</span>
-            <span>שחזור רכישה</span>
+            <span data-i18n="restore">שחזור רכישה</span>
           </button>
           <button id="lock-close" type="button" data-action="closeLock" class="w-full h-11 rounded-xl bg-[#171c2b] text-on-surface border border-white/20 flex items-center justify-center gap-2 active:scale-95 hover:scale-105 transition-all font-bold text-sm cursor-pointer">
-            <span>לא עכשיו</span>
+            <span data-i18n="notNow">לא עכשיו</span>
           </button>
         </div>
       </div>
@@ -534,45 +543,45 @@
       <div class="w-[340px] h-[560px] rounded-3xl bg-[#0d111d] p-6 shadow-2xl flex flex-col items-center border-2 border-primary/50 overflow-y-auto justify-between">
         <div class="w-full flex items-center justify-between border-b border-white/10 pb-2">
           <button type="button" data-action="goToStep" data-arg="1" class="text-xs text-primary font-bold flex items-center gap-1 hover:scale-110 transition-transform">
-            <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
-            <span>חזור</span>
+            <span class="material-symbols-outlined rtl-flip text-[16px]">arrow_forward</span>
+            <span data-i18n="back">חזור</span>
           </button>
-          <h2 class="font-game-title text-lg font-black text-primary text-center tracking-wider">פרטיות</h2>
+          <h2 class="font-game-title text-lg font-black text-primary text-center tracking-wider" data-i18n="privacy">פרטיות</h2>
           <div class="w-12"></div>
         </div>
 
-        <div class="w-full flex-1 overflow-y-auto my-2 flex flex-col gap-2 text-right">
-          <p class="text-xs text-on-surface-variant font-bold">Thinking Stars · Net100 Apps · net100apps@gmail.com<br/>עודכן: 16.9.2026</p>
+        <div class="w-full flex-1 overflow-y-auto my-2 flex flex-col gap-2 text-start">
+          <p class="text-xs text-on-surface-variant font-bold" data-i18n="privacyMeta">Thinking Stars · Net100 Apps · net100apps@gmail.com<br/>עודכן: 19.9.2026</p>
 
           <article class="rounded-xl bg-[#171c2b] border border-white/10 p-2.5 flex flex-col gap-1">
-            <h3 class="text-sm font-black text-primary">איזה מידע נאסף</h3>
-            <p class="text-xs text-on-surface-variant font-bold leading-relaxed">אף מידע אישי לא נאסף ולא נשלח. אין חשבונות, אין פרסומות ואין כלי מדידה.</p>
+            <h3 class="text-sm font-black text-primary" data-i18n="privCollectTitle">איזה מידע נאסף</h3>
+            <p class="text-xs text-on-surface-variant font-bold leading-relaxed" data-i18n="privCollect">אף מידע אישי לא נאסף ולא נשלח. אין חשבונות, אין פרסומות ואין כלי מדידה.</p>
           </article>
 
           <article class="rounded-xl bg-[#171c2b] border border-white/10 p-2.5 flex flex-col gap-1">
-            <h3 class="text-sm font-black text-primary">מה נשמר במכשיר</h3>
-            <p class="text-xs text-on-surface-variant font-bold leading-relaxed">הגדרת הצליל ומצב הפתיחה של הגרסה המלאה, במכשיר בלבד. שמות השחקנים לא נשמרים.</p>
+            <h3 class="text-sm font-black text-primary" data-i18n="privDeviceTitle">מה נשמר במכשיר</h3>
+            <p class="text-xs text-on-surface-variant font-bold leading-relaxed" data-i18n="privDevice">הגדרת הצליל, השפה שנבחרה ומצב הפתיחה של הגרסה המלאה, במכשיר בלבד. שמות השחקנים לא נשמרים.</p>
           </article>
 
           <article class="rounded-xl bg-[#171c2b] border border-white/10 p-2.5 flex flex-col gap-1">
-            <h3 class="text-sm font-black text-primary">רכישה</h3>
-            <p class="text-xs text-on-surface-variant font-bold leading-relaxed">הרכישה מתבצעת דרך Google Play, לפי מדיניות הפרטיות של גוגל. פרטי התשלום לא מגיעים אלינו.</p>
+            <h3 class="text-sm font-black text-primary" data-i18n="privPurchaseTitle">רכישה</h3>
+            <p class="text-xs text-on-surface-variant font-bold leading-relaxed" data-i18n="privPurchase">הרכישה מתבצעת דרך Google Play, לפי מדיניות הפרטיות של גוגל. פרטי התשלום לא מגיעים אלינו.</p>
           </article>
 
           <article class="rounded-xl bg-[#171c2b] border border-white/10 p-2.5 flex flex-col gap-1">
-            <h3 class="text-sm font-black text-primary">ילדים</h3>
-            <p class="text-xs text-on-surface-variant font-bold leading-relaxed">המשחק מתאים לילדים, ולא נאסף מהם שום מידע.</p>
+            <h3 class="text-sm font-black text-primary" data-i18n="privKidsTitle">ילדים</h3>
+            <p class="text-xs text-on-surface-variant font-bold leading-relaxed" data-i18n="privKids">המשחק מתאים לילדים, ולא נאסף מהם שום מידע.</p>
           </article>
 
           <article class="rounded-xl bg-[#171c2b] border border-white/10 p-2.5 flex flex-col gap-1">
-            <h3 class="text-sm font-black text-primary">שינויים</h3>
-            <p class="text-xs text-on-surface-variant font-bold leading-relaxed">כל שינוי במדיניות יופיע במסך הזה ובדף המדיניות של המשחק.</p>
+            <h3 class="text-sm font-black text-primary" data-i18n="privChangesTitle">שינויים</h3>
+            <p class="text-xs text-on-surface-variant font-bold leading-relaxed" data-i18n="privChanges">כל שינוי במדיניות יופיע במסך הזה ובדף המדיניות של המשחק.</p>
           </article>
         </div>
 
         <button type="button" data-action="goToStep" data-arg="1" class="w-full h-11 rounded-xl bg-[#171c2b] text-on-surface border border-white/20 flex items-center justify-center gap-2 active:scale-95 hover:scale-105 transition-all font-bold text-base">
-          <span class="material-symbols-outlined text-[20px] text-tertiary">arrow_forward</span>
-          <span>חזור</span>
+          <span class="material-symbols-outlined rtl-flip text-[20px] text-tertiary">arrow_forward</span>
+          <span data-i18n="back">חזור</span>
         </button>
       </div>
     </div>

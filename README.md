@@ -13,6 +13,10 @@
 
 - `index.html`: הדף. אין בו קוד בתוך תגיות, ויש בו מדיניות אבטחה (CSP) שמתירה רק קבצים מהאתר.
 - `js/game.js`: המשחק. הכפתורים מחוברים דרך `data-action`.
+- `js/i18n.js`: עברית ואנגלית. אנגלית היא השפה הראשית; עברית למכשיר שיש בו עברית ברשימת השפות או שנמצא
+  באזור הזמן של ישראל. בחירה מהכפתור נשמרת וגוברת.
+  הטקסט העברי כתוב ב-`index.html`, והאנגלי במילון. **טקסט חדש בדף** מקבל `data-i18n` ומפתח במילון;
+  `scripts/check-web.py` נכשל אם חסר תרגום.
 - `css/app.css`: העיצוב, שנבנה מראש ב-Tailwind CSS 3.4.19 לפי `tailwind.config.js` ו-`css/tailwind.css`.
   **אחרי הוספת מחלקה של Tailwind בונים אותו מחדש**, עם הקובץ העצמאי של Tailwind 3.4.19:
   `tailwindcss -c tailwind.config.js -i css/tailwind.css -o css/app.css --minify`

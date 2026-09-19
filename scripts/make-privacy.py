@@ -3,6 +3,8 @@
 מדיניות הפרטיות חייבת להופיע גם בתוך האפליקציה וגם בכתובת ציבורית (לדף החנות). כדי ששתי הגרסאות
 לא ייפרדו אף פעם, יש מקור אחד בלבד: המסך שב-<template id="app-parts"> שב-index.html.
 הסקריפט מעתיק ממנו את שורת הפרטים ואת הסעיפים כמו שהם, ועוטף אותם בדף עצמאי.
+הדף דו-לשוני: העברית כמו שהיא במסך, ואחריה האנגלית, שנבנית מאותם סעיפים עם הטקסט של המילון
+(js/i18n.js, לפי סימוני data-i18n). כך גם האנגלית לא נפרדת מהאפליקציה.
 
     python scripts/make-privacy.py            # כותב את privacy.html
     python scripts/make-privacy.py --check    # נכשל אם privacy.html לא תואם למסך שבאפליקציה
@@ -10,6 +12,8 @@
 הדף משתמש רק במחלקות שכבר קיימות ב-css/app.css, ולכן אין צורך לבנות את העיצוב מחדש.
 לפי ההחלטה במדריך, הדף לא מקשר למשחק.
 """
+import html
+import json
 import re
 import sys
 from pathlib import Path
@@ -25,16 +29,21 @@ SHELL = """<!DOCTYPE html>
   <!-- נוצר אוטומטית מ-index.html על ידי scripts/make-privacy.py. לא לערוך ביד: משנים את המסך שבאפליקציה -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"/>
   <meta name="color-scheme" content="dark"/>
-  <title>מדיניות פרטיות - Thinking Stars</title>
-  <meta name="description" content="מדיניות הפרטיות של המשחק Thinking Stars"/>
+  <title>מדיניות פרטיות · Privacy policy - Thinking Stars</title>
+  <meta name="description" content="מדיניות הפרטיות של המשחק Thinking Stars · The privacy policy of the game Thinking Stars"/>
   <link rel="icon" href="favicon.ico" sizes="any"/>
   <link rel="stylesheet" href="fonts/fonts.css"/>
   <link rel="stylesheet" href="css/app.css"/>
 </head>
 <body class="bg-[#02040a] font-body-md text-on-surface min-h-screen antialiased">
-  <main class="w-full max-w-md mx-auto p-6 flex flex-col gap-2 text-right">
+  <main class="w-full max-w-md mx-auto p-6 flex flex-col gap-2 text-start">
     <h1 class="text-2xl font-black text-primary text-center mb-1">מדיניות פרטיות</h1>
+    <p class="text-xs text-primary font-bold flex justify-center"><a href="#en" lang="en" dir="ltr" class="hover:scale-110 transition-transform">English below</a></p>
 {body}
+    <section id="en" dir="ltr" lang="en" class="flex flex-col gap-2 text-start mt-6">
+      <h1 class="text-2xl font-black text-primary text-center mb-1">Privacy policy</h1>
+{body_en}
+    </section>
   </main>
 </body>
 </html>
@@ -51,7 +60,7 @@ def extract(index_html: str) -> str:
     if not screen:
         raise SystemExit('the privacy screen (setup-view-step7) was not found')
     body = screen.group(0)
-    meta = re.search(r'\s*<p class="text-xs text-on-surface-variant font-bold">.*?</p>', body, re.S)
+    meta = re.search(r'\s*<p class="text-xs text-on-surface-variant font-bold"[^>]*>.*?</p>', body, re.S)
     articles = re.findall(r'\s*<article .*?</article>', body, re.S)
     if not meta or len(articles) < 5:
         raise SystemExit(f'expected the details line and 5 sections, found {bool(meta)} and {len(articles)}')
@@ -60,8 +69,37 @@ def extract(index_html: str) -> str:
     return '\n'.join(re.sub(r'^ {6}', '', b.strip('\n'), flags=re.M) for b in blocks)
 
 
+def strip_marks(text: str) -> str:
+    """הסימונים למילון (data-i18n) שייכים לאפליקציה בלבד, ולא נכנסים לדף הציבורי."""
+    return re.sub(r' data-i18n(?:-[a-z]+)?="[^"]*"', '', text)
+
+
+def english_strings() -> dict:
+    """המילון האנגלי שב-js/i18n.js (שורות בצורה  key: '...'). מחרוזות JS: \\n, \\u2019 וכו'."""
+    js = (ROOT / 'js' / 'i18n.js').read_text(encoding='utf-8')
+    block = re.search(r'\n    en: \{(.*?)\n    \}', js, re.S)
+    if not block:
+        raise SystemExit('the English dictionary was not found in js/i18n.js')
+    out = {}
+    for key, raw in re.findall(r"^\s+(\w+): '((?:[^'\\]|\\.)*)',?\s*$", block.group(1), re.M):
+        out[key] = json.loads('"' + raw.replace("\\'", "'").replace('"', '\\"') + '"')
+    return out
+
+
+def english(text: str, en: dict) -> str:
+    """אותם סעיפים, עם הטקסט האנגלי של כל רכיב מסומן, ובהזחה של החלק האנגלי."""
+    def swap(m):
+        key = m.group(3)
+        if key not in en:
+            raise SystemExit(f'the privacy screen marks "{key}", but js/i18n.js has no English for it')
+        return m.group(1) + '<br/>'.join(html.escape(part, quote=False) for part in en[key].split('\n')) + m.group(5)
+    text = re.sub(r'(<(p|h3)\b[^>]*\sdata-i18n="(\w+)"[^>]*>)(.*?)(</\2>)', swap, text, flags=re.S)
+    return re.sub(r'^', '  ', strip_marks(text), flags=re.M)
+
+
 def render() -> str:
-    return SHELL.replace('{body}', extract((ROOT / 'index.html').read_text(encoding='utf-8')))
+    body = extract((ROOT / 'index.html').read_text(encoding='utf-8'))
+    return SHELL.replace('{body}', strip_marks(body)).replace('{body_en}', english(body, english_strings()))
 
 
 def missing_classes(html: str) -> list:

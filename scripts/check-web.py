@@ -6,6 +6,7 @@
 2. כל קובץ שהאתר טוען נמצא ברשימת השמירה של ה-service worker.
 3. דף הפרטיות באתר (privacy.html) זהה למסך הפרטיות שבתוך האפליקציה.
 4. תוכן האפליקציה (www) זהה לקובצי האתר.
+5. המילון שב-js/i18n.js שלם: לכל טקסט שמסומן בדף יש אנגלית, ולכל מחרוזת בקוד יש עברית ואנגלית.
 
     python scripts/check-web.py            # על תיקיית הפרויקט
     python scripts/check-web.py --www      # גם על www, אחרי scripts/build-www.sh
@@ -41,6 +42,29 @@ def precached(sw: str) -> list:
     return re.findall(r"'\./([^']*)'", block.group(1))
 
 
+def dictionary(js: str, lang: str) -> set:
+    """המפתחות של שפה אחת במילון שב-js/i18n.js (שורות בצורה  key: '...')."""
+    block = re.search(r'\n    ' + lang + r': \{(.*?)\n    \}', js, re.S)
+    return set(re.findall(r"^\s+(\w+): '", block.group(1), re.M)) if block else set()
+
+
+def check_i18n(html: str) -> list:
+    """המילון שלם: לכל טקסט מסומן בדף יש אנגלית, ולכל מחרוזת שנבנית בקוד יש עברית ואנגלית."""
+    js = (ROOT / 'js' / 'i18n.js').read_text(encoding='utf-8')
+    he, en = dictionary(js, 'he'), dictionary(js, 'en')
+    if len(he) < 20 or len(en) < 50:
+        return [f'could not read the dictionary in js/i18n.js (he: {len(he)}, en: {len(en)} keys)']
+    bad = []
+    for key in sorted(set(re.findall(r'data-i18n(?:-[a-z]+)?="([^"]+)"', html)) - en):
+        bad.append(f'index.html marks "{key}" for translation, but js/i18n.js has no English for it')
+    code = ''.join((ROOT / 'js' / f).read_text(encoding='utf-8') for f in ('game.js', 'app.js'))
+    for key in sorted(set(re.findall(r"I18N\.t\('(\w+)'", code))):
+        for lang, keys in (('Hebrew', he), ('English', en)):
+            if key not in keys:
+                bad.append(f'the code uses I18N.t("{key}"), but js/i18n.js has no {lang} for it')
+    return bad
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument('--www', action='store_true', help='בודק גם את תוכן האפליקציה')
@@ -49,6 +73,7 @@ def main() -> int:
     bad = []
     html = (ROOT / 'index.html').read_text(encoding='utf-8')
     bad += check_page(html, 'index.html')
+    bad += check_i18n(html)
 
     # כל קובץ שהדף טוען חייב להיות ברשימת השמירה
     listed = set(precached((ROOT / 'sw.js').read_text(encoding='utf-8')))

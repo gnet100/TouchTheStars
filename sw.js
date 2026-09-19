@@ -8,11 +8,11 @@
 // 4. Requests to other servers are not handled here (the page loads nothing from them).
 // 5. All sites under gnet100.github.io share one cache storage, so only this game's
 //    caches (touch-the-stars-*) are ever deleted.
-const CACHE = 'touch-the-stars-v5';
+const CACHE = 'touch-the-stars-v6';
 const PREFIX = 'touch-the-stars-';
 const PRECACHE = [
   './', './index.html', './manifest.json', './favicon.ico',
-  './css/app.css', './js/game.js', './js/app.js',
+  './css/app.css', './js/i18n.js', './js/game.js', './js/app.js',
   './fonts/fonts.css', './fonts/rubik-hebrew.woff2', './fonts/rubik-latin.woff2',
   './fonts/fredoka-hebrew.woff2', './fonts/fredoka-latin.woff2', './fonts/material-symbols-outlined.woff2',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-512-maskable.png', './icons/apple-touch-icon.png',

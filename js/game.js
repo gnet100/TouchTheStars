@@ -1,3 +1,6 @@
+// הטקסטים הקבועים בדף, בשפה שנבחרה (js/i18n.js). בעברית לא משתנה כלום
+I18N.apply(document);
+
 // הצליל הוא תוספת: אם אין בדפדפן Web Audio, או שהוא נכשל, המשחק ממשיך לעבוד בלי צליל
 let audioCtx = null;
 try {
@@ -189,8 +192,8 @@ let setupStarterPlayer = 1;
 let gameState = {
   gameMode: 'ai',
   aiDifficultyLevel: 1,
-  player1Name: "שחקן 1",
-  player2Name: "מחשב",
+  player1Name: I18N.t('p1'),
+  player2Name: I18N.t('computer'),
   numRows: 5,
   board: [],
   currentPlayer: 1,
@@ -226,12 +229,12 @@ function selectGameMode(mode) {
 
   if (mode === 'pvp') {
     p2Box.classList.remove('hidden');
-    starterLabel2.innerText = "שחקן 2";
+    starterLabel2.innerText = I18N.t('p2');
     starterIcon2.innerText = "person_outline";
     goToStep(3);
   } else {
     p2Box.classList.add('hidden');
-    starterLabel2.innerText = "מחשב";
+    starterLabel2.innerText = I18N.t('computer');
     starterIcon2.innerText = "smart_toy";
     goToStep(2);
   }
@@ -293,8 +296,8 @@ function selectRows(count) {
 function applySetupAndStart() {
   gameState.gameMode = setupGameMode;
   gameState.aiDifficultyLevel = setupAiDiffLevel;
-  gameState.player1Name = document.getElementById('setup-p1-name').value.trim() || "שחקן 1";
-  gameState.player2Name = gameState.gameMode === 'ai' ? "מחשב" : (document.getElementById('setup-p2-name').value.trim() || "שחקן 2");
+  gameState.player1Name = document.getElementById('setup-p1-name').value.trim() || I18N.t('p1');
+  gameState.player2Name = gameState.gameMode === 'ai' ? I18N.t('computer') : (document.getElementById('setup-p2-name').value.trim() || I18N.t('p2'));
   gameState.numRows = setupRows;
   gameState.starterPlayer = setupStarterPlayer;
   gameState.scores = { 1: 0, 2: 0 }; // משחק חדש מההגדרות מתחיל מניקוד אפס
@@ -388,7 +391,7 @@ function updateHeaderUI() {
   if (!gameState.isGameOverHandled) {
     const computerTurn = gameState.gameMode === 'ai' && gameState.currentPlayer === 2;
     const curName = gameState.currentPlayer === 1 ? gameState.player1Name : gameState.player2Name;
-    document.getElementById('turn-text').innerText = computerTurn ? 'המחשב חושב...' : curName;
+    document.getElementById('turn-text').innerText = computerTurn ? I18N.t('computerThinking') : curName;
   }
   styleTurnBanner();
 }
@@ -409,7 +412,7 @@ function styleTurnBanner() {
 }
 
 function winsText(n) {
-  return n === 1 ? 'ניצחון אחד' : `${n} ניצחונות`;
+  return n === 1 ? I18N.t('winsOne') : I18N.t('winsMany', { n });
 }
 
 let endTimer = null;
@@ -427,7 +430,7 @@ function checkWinnerAndHandle() {
   const winnerName = winnerNum === 1 ? gameState.player1Name : gameState.player2Name;
   // למחשב ניסוח בזכר בלבד; לשחקנים ניסוח ניטרלי (ניצח/ה)
   const isComputer = (num) => gameState.gameMode === 'ai' && num === 2;
-  const winText = isComputer(winnerNum) ? `${winnerName} ניצח!` : `${winnerName} ניצח/ה!`;
+  const winText = isComputer(winnerNum) ? I18N.t('winComputer', { name: winnerName }) : I18N.t('winPlayer', { name: winnerName });
 
   // הכוכבית האחרונה מהבהבת באדום 3 פעמים. שורת התור לא מקבלת טקסט ארוך, כדי שהלוח לא יקפוץ
   renderBoard();
@@ -516,8 +519,8 @@ function renderBoard() {
   const undoMode = gameState.gameMode === 'ai';
   const restartBtn = document.getElementById('restart-btn');
   document.getElementById('restart-icon').innerText = undoMode ? 'restore' : 'refresh';
-  restartBtn.title = !undoMode ? 'התחל מחדש'
-    : (gameState.selectedIndices.length ? 'ביטול הבחירה' : 'מהלך אחד לאחור');
+  restartBtn.title = !undoMode ? I18N.t('restart')
+    : (gameState.selectedIndices.length ? I18N.t('clearSelection') : I18N.t('undoMove'));
   restartBtn.setAttribute('aria-label', restartBtn.title);
   restartBtn.disabled = undoMode && !canUndo();
   restartBtn.classList.toggle('opacity-50', restartBtn.disabled);
@@ -760,16 +763,16 @@ function handleAiTurn() {
 // ================= הדגמה =================
 // משחק לדוגמה בפירמידה של 5 שורות, שמראה את סוגי המהלכים ואת סוף המשחק
 const DEMO_STEPS = [
-  { text: 'בתחילת המשחק יש 5 שורות ו-15 כוכביות. שחקן 1 מתחיל' },
-  { player: 1, row: 0, cols: [0], text: 'שחקן 1 לוקח כוכבית אחת' },
-  { player: 2, row: 4, cols: [0, 1, 2], text: 'שחקן 2 לוקח 3 כוכביות צמודות מאותה שורה' },
-  { player: 1, row: 3, cols: [1, 2], text: 'שחקן 1 לוקח 2 כוכביות מאמצע השורה. עכשיו השורה מפוצלת לשני חלקים' },
-  { player: 2, row: 3, cols: [0, 3], illegal: true, text: 'אסור לקחת את שתי הכוכביות האלה יחד: כוכבית כבויה עוצרת את הרצף' },
-  { player: 2, row: 2, cols: [0, 1, 2], text: 'שחקן 2 בוחר מהלך אחר ולוקח שורה שלמה' },
-  { player: 1, row: 4, cols: [3, 4], text: 'שחקן 1 לוקח 2 כוכביות צמודות' },
-  { player: 2, row: 3, cols: [0], text: 'שחקן 2 לוקח כוכבית אחת' },
-  { player: 1, row: 1, cols: [0, 1], text: 'שחקן 1 לוקח שורה שלמה ומשאיר לשחקן 2 כוכבית אחת בלבד' },
-  { end: true, text: 'הכוכבית האחרונה מהבהבת באדום: שחקן 2 נשאר איתה והפסיד. שחקן 1 ניצח!' }
+  { text: I18N.t('demo0') },
+  { player: 1, row: 0, cols: [0], text: I18N.t('demo1') },
+  { player: 2, row: 4, cols: [0, 1, 2], text: I18N.t('demo2') },
+  { player: 1, row: 3, cols: [1, 2], text: I18N.t('demo3') },
+  { player: 2, row: 3, cols: [0, 3], illegal: true, text: I18N.t('demo4') },
+  { player: 2, row: 2, cols: [0, 1, 2], text: I18N.t('demo5') },
+  { player: 1, row: 4, cols: [3, 4], text: I18N.t('demo6') },
+  { player: 2, row: 3, cols: [0], text: I18N.t('demo7') },
+  { player: 1, row: 1, cols: [0, 1], text: I18N.t('demo8') },
+  { end: true, text: I18N.t('demo9') }
 ];
 // token מתחלף בכל מעבר שלב או יציאה, וכך טיימרים ישנים לא ממשיכים לרוץ
 const demo = { index: 0, playing: true, busy: false, token: 0 };
@@ -818,12 +821,12 @@ function renderDemoBoard(board, step, phase) {
 
 function updateDemoCaption(step, index) {
   const pill = document.getElementById('demo-player');
-  pill.innerText = step.end ? 'סוף המשחק' : step.player ? `תור שחקן ${step.player}` : 'פתיחה';
+  pill.innerText = step.end ? I18N.t('demoEnd') : step.player ? I18N.t('demoTurn', { n: step.player }) : I18N.t('demoOpening');
   pill.className = 'text-[11px] font-black px-2 py-0.5 rounded-full border ' + (
     step.player === 1 ? 'text-player1 border-player1/50 bg-player1/10'
     : step.player === 2 ? 'text-secondary border-secondary/50 bg-secondary/10'
     : 'text-amber-400 border-amber-400/50 bg-amber-400/10');
-  document.getElementById('demo-counter').innerText = `שלב ${index + 1} מתוך ${DEMO_STEPS.length}`;
+  document.getElementById('demo-counter').innerText = I18N.t('demoCounter', { i: index + 1, n: DEMO_STEPS.length });
   document.getElementById('demo-text').innerText = step.text;
 }
 
@@ -920,7 +923,7 @@ function applySoundState() {
   const btn = document.getElementById('sound-btn');
   document.getElementById('sound-off-line').classList.toggle('hidden', soundOn);
   document.getElementById('sound-icon').classList.toggle('opacity-50', !soundOn);
-  btn.title = soundOn ? 'צליל פעיל' : 'צליל כבוי';
+  btn.title = soundOn ? I18N.t('soundOn') : I18N.t('soundOff');
   btn.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
 }
 
@@ -956,7 +959,8 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
 // הכפתורים בדף לא מחזיקים קוד (onclick), כי מדיניות האבטחה של הדף (CSP) חוסמת קוד שכתוב בתוך תגיות.
 // כל כפתור מסמן data-action (שם הפעולה) ו-data-arg (הערך, אם יש), ומאזין אחד מפעיל את הפעולה
 const ACTIONS = { selectGameMode, toggleSound, goToStep, goBackFromStep3, setAiDiff, setStarterPlayer, selectRows,
-  applySetupAndStart, demoStep, demoTogglePlay, undoOrRestart, commitMove, startNextRound, playAgain, goToStartFromModal };
+  applySetupAndStart, demoStep, demoTogglePlay, undoOrRestart, commitMove, startNextRound, playAgain, goToStartFromModal,
+  toggleLang: () => I18N.toggle() };
 document.addEventListener('click', (e) => {
   const btn = e.target.closest('[data-action]');
   if (!btn || btn.disabled) return;

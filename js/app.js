@@ -25,7 +25,13 @@
   function addAppParts() {
     const tpl = document.getElementById('app-parts');
     if (!tpl) { console.error('app: the app-parts template is missing'); return; }
-    document.body.appendChild(tpl.content.cloneNode(true));
+    // מתורגמים עוד לפני שהם נכנסים לדף (באנגלית; בעברית הטקסט כבר כתוב בתבנית)
+    const parts = tpl.content.cloneNode(true);
+    I18N.apply(parts);
+    // המחיר הקבוע (4.90 ₪) נכון רק בישראל. בשפה אחרת מחכים למחיר של גוגל, במטבע של המשתמש
+    const fallbackPrice = parts.querySelector('#lock-price');
+    if (fallbackPrice && I18N.lang !== 'he') { fallbackPrice.textContent = ''; fallbackPrice.classList.add('hidden'); }
+    document.body.appendChild(parts);
     // הקישור לפרטיות נכנס לשורה התחתונה של מסך הפתיחה, בין הצליל להוראות
     const row = document.getElementById('home-bottom-row');
     const link = document.getElementById('privacy-link');
@@ -89,9 +95,9 @@
   const UNLOCK_KEY = 'tts-full';
   const MISS_KEY = 'tts-full-miss';
   const LOCK_TARGETS = ['diff-btn-4', 'diff-btn-5', 'row-btn-6'];
-  const PENDING_TEXT = 'התשלום ממתין לאישור, למשל של הורה. הגרסה המלאה תיפתח לבד אחרי האישור.';
-  const FAILED_TEXT = 'הרכישה לא הושלמה. אפשר לנסות שוב מתי שרוצים.';
-  const OFFLINE_TEXT = 'אין חיבור ל-Google Play כרגע. אפשר לנסות שוב מאוחר יותר.';
+  const PENDING_TEXT = I18N.t('lockPending');
+  const FAILED_TEXT = I18N.t('lockFailed');
+  const OFFLINE_TEXT = I18N.t('lockOffline');
 
   let unlocked = read(UNLOCK_KEY) === '1';
   let wanted = null;        // מה נלחץ כשהמנעול נפתח, כדי לבחור אותו מיד אחרי הרכישה
@@ -126,7 +132,7 @@
         span.setAttribute('aria-hidden', 'true');
         span.textContent = 'lock';
         btn.appendChild(span);
-        btn.title = 'נעול בגרסה החינמית';
+        btn.title = I18N.t('lockedTitle');
       }
     });
     if (unlocked) closeLock();
@@ -187,6 +193,7 @@
   }
 
   // המחיר מגיע מגוגל עם המטבע והפורמט הנכונים. עד שהוא מגיע, ואם הוא לא מגיע, נשאר המחיר שבדף
+  // (בעברית בלבד; בשפה אחרת השורה מוסתרת עד שהמחיר מגיע)
   function loadPrice() {
     const el = document.getElementById('lock-price');
     if (!el || priceFromStore || !Purchases || typeof Purchases.getProducts !== 'function') return;
@@ -195,6 +202,7 @@
         const product = res && res.products && res.products[0];
         if (product && product.priceString) {
           el.textContent = product.priceString;
+          el.classList.remove('hidden');
           priceFromStore = true;
         }
       })
@@ -243,7 +251,7 @@
   function buyUnlock() {
     if (busy || !Purchases || typeof Purchases.purchaseProduct !== 'function') return;
     setBusy(true);
-    setStatus('רגע, פותחים את Google Play...');
+    setStatus(I18N.t('lockOpening'));
     serial(() => Purchases.purchaseProduct({
       productIdentifier: PRODUCT_ID, productType: 'inapp', autoAcknowledgePurchases: false
     }))
@@ -263,12 +271,12 @@
   function restoreUnlock() {
     if (busy || !Purchases || typeof Purchases.getPurchases !== 'function') return;
     setBusy(true);
-    setStatus('בודקים מול Google Play...');
+    setStatus(I18N.t('lockChecking'));
     checkPurchases()
       .then((state) => {
         setBusy(false);
         if (state === 'purchased') { unlockNow(); return; }
-        setStatus(state === 'pending' ? PENDING_TEXT : 'לא נמצאה רכישה בחשבון Google הזה.');
+        setStatus(state === 'pending' ? PENDING_TEXT : I18N.t('lockNotFound'));
       })
       .catch(() => { setBusy(false); setStatus(OFFLINE_TEXT); });
   }

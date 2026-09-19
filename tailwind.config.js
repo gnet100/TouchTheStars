@@ -2,7 +2,8 @@
 // אחרי הוספת מחלקה חדשה בונים מחדש את css/app.css, עם הקובץ העצמאי של Tailwind 3.4.19 (יושב מחוץ למאגר):
 //   tailwindcss-windows-x64.exe -c tailwind.config.js -i css/tailwind.css -o css/app.css --minify
 module.exports = {
-  content: ['./index.html', './js/**/*.js'],
+  // js/i18n.js הוא מילון טקסטים בלבד, בלי שמות מחלקות. מילים רגילות בו (table, block, hidden) היו נבנות בטעות כמחלקות
+  content: ['./index.html', './js/**/*.js', '!./js/i18n.js'],
   // text-[${size}px] נבנית בזמן ריצה (renderDemoBoard), ולכן הסריקה לא מוצאת אותה
   safelist: ['text-[20px]'],
   darkMode: "class",
