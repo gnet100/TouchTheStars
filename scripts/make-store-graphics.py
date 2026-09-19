@@ -98,6 +98,9 @@ def feature_html():
 
 
 class _Quiet(http.server.SimpleHTTPRequestHandler):
+    # בלי זה השרת של Python בווינדוס קוטע לפעמים קבצים גדולים (ERR_CONNECTION_RESET), כמו בשרת הבדיקות
+    protocol_version = 'HTTP/1.1'
+
     def log_message(self, *args):
         pass
 
