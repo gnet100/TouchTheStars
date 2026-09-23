@@ -12,10 +12,21 @@
 #   public *;
 #}
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Crash reports in the Play Console stay readable. The mapping file travels inside
+# the app bundle, and Google uses it to turn obfuscated frames back into ours.
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Capacitor plugin classes are kept by the rules that @capacitor/android ships
+# (consumerProguardFiles), so this file deliberately keeps nothing else: every
+# extra keep rule lowers the optimization coverage Google measures.
+
+# Guava, which the purchase plugin pulls in, is compiled against annotations that
+# are not on Android and not in the app. R8 treats such references as an error, and
+# these are annotations only: nothing here is called at runtime.
+# If R8 reports other missing classes, read app/build/outputs/mapping/release/
+# missing_rules.txt and decide one by one. Do not silence a whole package blindly.
+-dontwarn com.google.errorprone.annotations.**
+-dontwarn javax.annotation.**
+-dontwarn org.checkerframework.**
+-dontwarn com.google.j2objc.annotations.**

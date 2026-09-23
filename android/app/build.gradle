@@ -20,8 +20,12 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            // ‏R8 מכווץ, מערפל ומייעל את הקוד. גוגל דורשת מפברואר 2027 כיסוי של 25% לפחות,
+            // ‏ובלי זה האפליקציה מאבדת חשיפה ויכולות פרסום.
+            // ‏proguard-android-optimize מפעיל גם את האופטימיזציה, בניגוד ל-proguard-android.
+            // ‏מחלקות התוספים נשמרות מעצמן: Capacitor מביא consumerProguardFiles משלו.
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }
